@@ -48,8 +48,8 @@ else:
 rule star:
     input: [OUTDIR/f'counts/{sample}/{sample}.count.txt' for sample in SAMPLES]
 
-rule kallisto:
-    input: [OUTDIR/f'kallisto/{sample}.done' for sample in SAMPLES]
+# rule kallisto:
+#     input: [OUTDIR/f'kallisto/{sample}.done' for sample in SAMPLES]
 
 rule salmon:
     input: [OUTDIR / f'salmon/{sample}_quant/quant.sf' for sample in SAMPLES]

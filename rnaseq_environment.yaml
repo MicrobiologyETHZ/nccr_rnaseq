@@ -1,4 +1,4 @@
-name: nccrPipe
+name: rnaseq
 channels:
   - defaults
   - bioconda

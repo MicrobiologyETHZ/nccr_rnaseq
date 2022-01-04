@@ -1,7 +1,7 @@
 projectName: TAIR10_basic
-dataDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/raw
-outDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/
-samples: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/TAIR10_basic_sample.csv
+dataDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/tair10/raw
+outDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/test_out/tair10
+samples: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/test_out/tair10/TAIR10_basic_sample.csv
 
 sanitise_name: true
 name_delimiter: _
@@ -22,8 +22,8 @@ merge_replicates: false
 
 # STAR
 refGenome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/TAIR10/Arabidopsis_thaliana.TAIR10.dna_sm.toplevel.fa.gz
-refAnn: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/TAIR10/Arabidopsis_thaliana.TAIR10.51.gtf.gz
-refGff: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/TAIR10/Arabidopsis_thaliana.TAIR10.51.gff3.gz
+refAnn: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/TAIR10/Arabidopsis_thaliana.TAIR10.51.gtf
+refGff: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/TAIR10/Arabidopsis_thaliana.TAIR10.51.gff3
 genomeDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/TAIR10/star_index
 overhang: 149
 maxIntron: 50000

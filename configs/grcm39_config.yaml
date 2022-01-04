@@ -1,7 +1,7 @@
 projectName: grcm39_basic
-dataDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/raw
-outDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/
-samples: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/RNAseq_Test_sample.csv
+dataDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/rnaseq/grcm39
+outDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/test_out/grcm39
+samples: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/test_data/test_out/grcm39/RNAseq_Test_sample.csv
 
 sanitise_name: true
 name_delimiter: _
@@ -20,12 +20,12 @@ fastqc: no # Options: no, before, after, both
 merge_replicates: false
 
 # STAR
-refGenome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/GCF_000001735.4_TAIR10.1_genomic.fna
-refAnn: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/GCF_000001735.4_TAIR10.1_genomic.edited2.gtf
-refGff: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/Arabidopsis_thaliana.TAIR10.50.gff3
-genomeDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/ncbi_star_index
+refGenome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/GRCm39/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz
+refAnn: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/GRCm39/Mus_musculus.GRCm39.104.gtf
+refGff: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/GRCm39/Mus_musculus.GRCm39.104.gff3
+genomeDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/GRCm39/star_index
 overhang: 149
-maxIntron: 50000
+maxIntron: 1000000
 
 # featureCounts
 strand: 0
@@ -33,8 +33,8 @@ attribute: gene_id
 
 # salmon/kallisto
 
-transcriptome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/AtRTD2_19April2016.fa
-kallistoIdx: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/AtRTD2_19April2016.idx
+transcriptome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/GRCm39/Mus_musculus.GRCm39.cdna.all.fa.gz
+kallistoIdx:
 
 
 

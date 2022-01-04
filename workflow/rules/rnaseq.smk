@@ -6,11 +6,12 @@ OUTDIR = Path(config['outDir'])
 
 rule STAR_index:
     input: config['refGenome']
-    output: touch(OUTDIR/f'{config["projectName"]}.index.done')
+    output: touch(Path(config['refGenome']).parent/f'{config["projectName"]}.star.index.done')
     params:
         qerrfile = OUTDIR/'logs/STAR.index.qerr',
         qoutfile = OUTDIR/'logs/STAR.index.qout',
         genomeDir = config["genomeDir"],
+        genome_no_suffix = Path(config['refGenome']).parent/Path(config['refGenome']).stem,
         annotation = config["refAnn"],
         overhang = config["overhang"],
         threads = 32,
@@ -22,17 +23,37 @@ rule STAR_index:
     log: OUTDIR/'logs/STAR.index.log'
     threads:
         32
-    shell: "STAR --runThreadN {params.threads} "
-           "--runMode genomeGenerate "
-           "--genomeFastaFiles {input} "
-           "--genomeDir {params.genomeDir} "
-           "--sjdbGTFfile {params.annotation} "
-           "--sjdbOverhang {params.overhang} "
+    shell:
+        '''
+        #!/bin/bash
+        command="
+        if [[ {input} = *.gz ]]; then
+          gunzip {input}
+          STAR --runThreadN {params.threads} --runMode genomeGenerate \
+        --genomeFastaFiles {params.genome_no_suffix} --genomeDir {params.genomeDir} \
+        --sjdbGTFfile {params.annotation} --sjdbOverhang {params.overhang}
+          gzip {params.genome_no_suffix};
+        else
+          STAR --runThreadN {params.threads} --runMode genomeGenerate \
+        --genomeFastaFiles {input} --genomeDir {params.genomeDir} \
+        --sjdbGTFfile {params.annotation} --sjdbOverhang {params.overhang}
+        fi
+        ";
+        eval "$command"
+        '''
+
+
+
+        
+
+        
+
+
            #"--sjdbGTFtagExonParentTranscript Parent " # For GFF3 annotations
 
 
 rule STAR_align:
-    input: index_done = OUTDIR/f'{config["projectName"]}.index.done',
+    input: index_done = Path(config['refGenome']).parent/f'{config["projectName"]}.star.index.done',
         fq1 = OUTDIR/'clean_reads/{sample}/{sample}.1.fq.gz',
         fq2= OUTDIR/'clean_reads/{sample}/{sample}.2.fq.gz'
     output: marker = touch(OUTDIR/'bam/{sample}/{sample}.done'),

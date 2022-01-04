@@ -61,19 +61,32 @@ def samples(configfile, fastq_dir, sample_file, read2_extension, read1_extension
         )
 
 
-@main.command() # todo fix
-@click.option('--config', '-c', default='../configs/rnaseq_config.yaml', help='Configuration File')
-@click.option('--method', '-m', default='star', help='star (default), salmon, or kallisto')
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
 @click.option('--local', is_flag=True, help="Run on local machine")
 @click.option('--dry', is_flag=True, help="Show commands without running them")
-def rnaseq(config, method, local, dry):
-    click.echo("Running Eukaryotic RNASeq Pipeline")
+def star(config, local, dry):
+    click.echo("Running Eukaryotic RNASeq Pipeline: STAR/featureCounts")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'star', smk_file, dry, local)
+    click.echo(" ".join(cmd))
+
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+def salmon(config, local, dry):
+    click.echo("Running Eukaryotic RNASeq Pipeline: Salmon")
     click.echo(f"Config file: {config}")
     # click.echo("Samples found: ")
     click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile_rnaseq"
-    cmd = snakemake_cmd(config, method, smk_file, dry, local)
+    cmd = snakemake_cmd(config, 'salmon', smk_file, dry, local)
     click.echo(" ".join(cmd))
+
 
 
 @main.command()
@@ -97,7 +110,7 @@ def snakemake_cmd(config, analysis, smk_file, dry, local, no_conda=False):
         else:
             part1 = shlex.split(f'snakemake --configfile {config} -s {smk_file} --use-conda -k --cluster ')
         part2 = shlex.split(f'{rstring}')
-        part3 = shlex.split(f' -p -j 6 --max-jobs-per-second 1 {analysis}')
+        part3 = shlex.split(f' -p -j 8 --max-jobs-per-second 1 {analysis}')
         cmd = part1 + part2 + part3
     wdPath = Path(__file__).parent.absolute()
     subprocess.check_call(cmd, cwd=wdPath)
