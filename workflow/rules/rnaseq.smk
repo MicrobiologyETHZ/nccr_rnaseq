@@ -130,7 +130,7 @@ rule kallisto_index:
     threads:
         32
     shell:
-        "kallisto index -i {params.kallistoIdx} {input.tna} "
+        "kallisto index -i {params.kallistoIdx} {input.tna} &> {log} "
 
 
 rule kallisto_quant:
@@ -160,7 +160,7 @@ rule kallisto_quant:
 rule salmon_index:
     input: tna = config['transcriptome'],
         genome = config['refGenome']
-    output: marker = touch(OUTDIR/f"{config['projectName']}.salmon.index.done"),
+    output: marker = touch(Path(config['transcriptome']).parent/f"{config['projectName']}.salmon.index.done"),
     params:
         qerrfile = lambda wildcards: OUTDIR/f'logs/salmon_index.qerr',
         qoutfile = lambda wildcards: OUTDIR/f'logs/salmon_index.qout',
@@ -179,14 +179,14 @@ rule salmon_index:
         'grep "^>" <(gunzip -c {input.genome}) | cut -d " " -f 1 > {params.decoys};'
         'sed -i.bak -e \'s/>//g\' {params.decoys}; '
         'cat {input.tna} {input.genome} > {params.gentrome}; '
-        'salmon index -t {params.gentrome} -d {params.decoys} -i {params.salmonIdx} -p 32 '
+        'salmon index -t {params.gentrome} -d {params.decoys} -i {params.salmonIdx} -p 32 &> {log}'
 
 
 if not config['se']:
     rule salmon_run:
         input: fq1 = OUTDIR/"clean_reads/{sample}/{sample}.1.fq.gz",
             fq2= OUTDIR / "clean_reads/{sample}/{sample}.2.fq.gz",
-            indx_marker = OUTDIR/f"{config['projectName']}.salmon.index.done"
+            indx_marker = Path(config['transcriptome']).parent/f"{config['projectName']}.salmon.index.done"
         output:  OUTDIR/"salmon/{sample}_quant/quant.sf"
         params:
             qerrfile = lambda wildcards: OUTDIR/f'logs/salmon_index.qerr',
@@ -203,12 +203,12 @@ if not config['se']:
             32
         shell:
             "salmon quant -i {params.salmonIdx} -l A -1 {input.fq1} -2 {input.fq2} "
-            "-p 8 --validateMappings --gcBias  -o {params.out_dir}"
+            "-p 8 --validateMappings --gcBias  -o {params.out_dir} &> {log}"
 
 else:
     rule salmon_run:
         input: fq1=OUTDIR / "clean_reads/{sample}/{sample}.1.fq.gz",
-            indx_marker=OUTDIR / f"{config['projectName']}.salmon.index.done"
+            indx_marker=Path(config['transcriptome']).parent/f"{config['projectName']}.salmon.index.done"
         output: OUTDIR / "salmon/{sample}_quant/quant.sf"
         params:
             qerrfile=lambda wildcards: OUTDIR / f'logs/salmon_index.qerr',
@@ -225,5 +225,5 @@ else:
             32
         shell:
             "salmon quant -i {params.salmonIdx} -l A -r  {input.fq1} "
-            "-p 32 --validateMappings --gcBias  -o {params.out_dir} "
+            "-p 32 --validateMappings --gcBias  -o {params.out_dir} &> {log}"
 

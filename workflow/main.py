@@ -81,9 +81,8 @@ def star(config, local, dry):
 def salmon(config, local, dry):
     click.echo("Running Eukaryotic RNASeq Pipeline: Salmon")
     click.echo(f"Config file: {config}")
-    # click.echo("Samples found: ")
     click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
-    smk_file = "Snakefile_rnaseq"
+    smk_file = "Snakefile"
     cmd = snakemake_cmd(config, 'salmon', smk_file, dry, local)
     click.echo(" ".join(cmd))
 

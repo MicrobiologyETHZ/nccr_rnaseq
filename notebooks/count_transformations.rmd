@@ -1,0 +1,257 @@
+---
+title: "R Notebook"
+author: ansintsova
+date: 11.01.2022
+output: html_notebook
+---
+
+```{r}
+library(DESeq2)
+library(edgeR)
+library(tidyverse)
+library(ggplot2)
+library(compositions)
+```
+
+
+```{r}
+# sdf_file <- "~/git_repos/akeppler_rnaseq/data/full_metadata.csv"
+# edf_file <- "~/git_repos/akeppler_rnaseq/data/counts/R1_R120_featureCounts.csv"
+# sdf <- read.csv(sdf_file, row.names=1)
+# edf <- read.csv(edf_file, row.names=1)
+# edf <- subset(edf, select = -c(Length))
+# sampleData <- sdf %>% filter(genotype == 'Col0', strain %in% c('axenic', 'Leaf137'))
+# countData <- edf[,rownames(sampleData)]
+# write.csv(sampleData, './test_data/sampleData.csv')
+# write.csv(countData, './test_data/countData.csv')
+```
+
+```{r}
+sampleData <- read.csv('./test_data/sampleData.csv', row.names=1)
+countData <- read.csv('./test_data/countData.csv', row.names=1)
+
+```
+```{r}
+sampleData <- sampleData %>% rownames_to_column("sampleID")
+```
+
+```{r}
+clean.data <- function (countData, name){
+  tidyData <- as.data.frame(countData) %>% rownames_to_column("geneID") %>%
+        gather(!'geneID', key='sampleID', value='count') %>%
+        left_join(sampleData, by='sampleID') %>% mutate(dataset=name)
+  return (tidyData)
+}
+```
+
+```{r}
+rawData <- clean.data(countDataFilt, 'raw')
+```
+# EdgeR Transformations
+```{r}
+strain <- sampleData$strain
+edgeData <- DGEList(counts=countData, group=strain)
+cpmData <- cpm(edgeData) # 0
+cpmData <- clean.data(cpmData, 'CPM')
+lcpmData <- cpm(edgeData, log=TRUE) # 1
+lcpmData <- clean.data(lcpmData, 'logCPM')
+
+keep.exprs <- filterByExpr(edgeData)
+edgeDataFilt <- edgeData[keep.exprs,, keep.lib.sizes=FALSE]
+tmmData <- calcNormFactors(edgeDataFilt, method = "TMM" )
+tmmCPM <- cpm(tmmData, log=TRUE) # 2
+tmmCPM <- clean.data(tmmCPM, 'TMM')
+```
+
+# DESeq2 Transformations
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData = countData,
+                              colData = sampleData,
+                              design = ~ strain)
+
+keep <- rowSums(counts(dds)) >= 10
+dds <- dds[keep,]
+dds <- DESeq(dds)
+vsd <- vst(dds, blind = FALSE)
+vstData <- assay(vsd) # 3
+vstData <- clean.data(vstData, 'VST')
+```
+```{r}
+keep <- rowSums(countData) >= 10
+countDataFilt <- countData[keep,]
+clrData <- t(clr(t(countDataFilt + 0.5))) # 4
+clrData <- clean.data(clrData, 'CLR')
+```
+
+```{r}
+fdf <- bind_rows(rawData, cpmData, lcpmData, tmmCPM, clrData, vstData)
+write.csv(fdf, './test_data/transformed.csv')
+```
+
+# Raw Data
+```{r}
+ggplot(tidyData, aes(x=count, color=sampleID)) + geom_histogram(bins=100)
+```
+
+
+```{r}
+
+ggplot(cpmData, aes(x=count, color=sampleID)) + geom_histogram(bins=100)
+```
+
+
+
+
+
+
+
+```{r}
+x <- calcNormFactors(x, method = "TMM")
+x$samples$norm.factors
+```
+## Load STAR/featureCount data
+
+```{r}
+
+
+```
+
+
+```{r}
+head(sdf)
+```
+```{r}
+dds <- DESeqDataSetFromMatrix(countData = edf,
+                              colData = sdf,
+                              design= ~ genotype + strain)
+dds
+```
+```{r}
+keep <- rowSums(counts(dds)) >= 10
+dds <- dds[keep,]
+dds
+```
+
+```{r}
+dds$group <- factor(paste0(dds$genotype, dds$strain))
+design(dds) <- ~ group
+dds <- DESeq(dds)
+```
+```{r}
+
+#test.sdf <-  subset(sdf, genotype=='Col0')
+#test.edf <- subset(edf, select = c(rownames(test.sdf)))
+#test.dds <- DESeqDataSetFromMatrix(countData = test.edf,
+#                              colData = test.sdf,
+#                              design= ~ strain)
+#keep <- rowSums(counts(test.dds)) >= 10
+#test.dds <- test.dds[keep,]
+#test.dds <- DESeq(test.dds)
+#test.r <- results(test.dds, contrast=c("strain", "Leaf137", "axenic"))
+```
+
+```{r}
+get_results <- function(dds, c1, c2, outDir){
+    res <- results(dds, contrast=c('group', c1, c2), alpha=0.01)
+    write.csv(res, file.path(outDir, paste0(c1, '_', c2, '_unfiltered_results.csv')))
+    resSig <- subset(res, abs(log2FoldChange) > 1 & padj < 0.01)
+    write.csv(resSig, file.path(outDir, paste0(c1, '_', c2, '_filtered_results.csv')))
+    print(head(resSig))
+    return(res)
+}
+```
+
+```{r}
+resultsNames(dds)
+```
+
+```{r}
+
+res2 <- get_results(dds, 'Col0Leaf137', 'Col0axenic', '/data/20_04_2021')
+```
+
+```{r}
+conditons <- list(c('Col0Leaf137', 'Col0axenic'), c('Col0Leaf15', 'Col0axenic'),
+                  c('bak1_bkk1Leaf137', 'bak1_bkk1axenic'), c('bak1_bkk1Leaf15', 'bak1_bkk1axenic'),
+                  c('cyp71a12_cyp71a13Leaf137', 'cyp71a12_cyp71a13axenic'), c('cyp71a12_cyp71a13Leaf15', 'cyp71a12_cyp71a13axenic'),
+                  c('jar1_ein2_npr1Leaf137', 'jar1_ein2_npr1axenic'), c('jar1_ein2_npr1Leaf15', 'jar1_ein2_npr1axenic'),
+                  c('rbohD_rbohFLeaf137', 'rbohD_rbohFaxenic'), c('rbohD_rbohFLeaf15', 'rbohD_rbohFaxenic'),
+                  c('exo70b1_exo70b2Leaf137', 'exo70b1_exo70b2axenic'), c('exo70b1_exo70b2Leaf15', 'exo70b1_exo70b2axenic'),
+                  c('bik1_pbl1Leaf137', 'bik1_pbl1axenic'), c('bik1_pbl1Leaf15', 'bik1_pbl1axenic'),
+                  c('xbat34Leaf137', 'xbat34axenic'), c('xbat34Leaf15', 'xbat34axenic'),
+                  c('bak1_bkk1axenic', 'Col0axenic'),
+                  c('cyp71a12_cyp71a13axenic', 'Col0axenic'),
+                  c('jar1_ein2_npr1axenic', 'Col0axenic'),
+                  c('rbohD_rbohFaxenic', 'Col0axenic'),
+                  c('exo70b1_exo70b2axenic', 'Col0axenic'),
+                  c('bik1_pbl1axenic', 'Col0axenic'),
+                  c('xbat34axenic', 'Col0axenic'))
+
+
+outDir <- '/data/20_04_2021'
+
+for (c in conditons){
+  print(c)
+  get_results(dds, c[1], c[2], outDir)
+}
+
+```
+
+
+```{r}
+leaf_conditons <- list( c('bak1_bkk1Leaf15', 'Col0Leaf15'),
+                       c('bak1_bkk1Leaf137', 'Col0Leaf137'),
+                       c('cyp71a12_cyp71a13Leaf137', 'Col0Leaf137'),
+                       c('cyp71a12_cyp71a13Leaf15', 'Col0Leaf15'),
+                       c('jar1_ein2_npr1Leaf137', 'Col0Leaf137'),
+                       c('jar1_ein2_npr1Leaf15', 'Col0Leaf15'),
+                       c('rbohD_rbohFLeaf137', 'Col0Leaf137'),
+                       c('rbohD_rbohFLeaf15', 'Col0Leaf15'),
+                       c('exo70b1_exo70b2Leaf137', 'Col0Leaf137'),
+                       c('exo70b1_exo70b2Leaf15', 'Col0Leaf15'),
+                       c('bik1_pbl1Leaf137',  'Col0Leaf137'),
+                       c('bik1_pbl1Leaf15', 'Col0Leaf15'),
+                       c('xbat34Leaf137', 'Col0Leaf137'),
+                       c('xbat34Leaf15', 'Col0Leaf15'))
+
+
+outDir <- '/data/25_06_21'
+
+for (c in leaf_conditons){
+  print(c)
+  get_results(dds, c[1], c[2], outDir)
+}
+
+```
+```{r}
+res2 <- get_results(dds, 'bak1_bkk1Leaf15', 'Col0Leaf15', '/data/25_06_21')
+```
+
+
+
+```{r}
+vsd <- vst(dds)
+```
+```{r}
+write.csv(assay(vsd), file= "/data/vst_normalized_counts.csv")
+```
+
+```{r}
+?plotPCA
+```
+
+```{r}
+plotPCA(vsd, intgroup=c("genotype"))
+```
+
+
+```{r}
+
+plotPCA(vsd, intgroup=c("strain"))
+
+```
+
+
+Now, click the **Run** button on the chunk toolbar to [execute](https://www.jetbrains.com/help/pycharm/r-markdown.html#run-r-code) the chunk code. The result should be placed under the chunk.
+Click the **Knit and Open Document** to built and preview an output.
