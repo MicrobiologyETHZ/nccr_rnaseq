@@ -19,7 +19,7 @@ rule STAR_index:
         mem = 7700,
         time = 1400
     conda:
-        '../envs/rnaseq.yaml'
+        'star_salmon'
     log: OUTDIR/'logs/STAR.index.log'
     threads:
         32
@@ -43,19 +43,17 @@ rule STAR_index:
         '''
 
 
-
-        
-
-        
-
-
            #"--sjdbGTFtagExonParentTranscript Parent " # For GFF3 annotations
 
+def star_input(wildcards):
+    if not config['se']:
+        return f'{OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.1.fq.gz {OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.2.fq.gz'
+    else:
+        return f'{OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.1.fq.gz'
 
 rule STAR_align:
     input: index_done = Path(config['refGenome']).parent/f'{config["projectName"]}.star.index.done',
-        fq1 = OUTDIR/'clean_reads/{sample}/{sample}.1.fq.gz',
-        fq2= OUTDIR/'clean_reads/{sample}/{sample}.2.fq.gz'
+        fq = star_input
     output: marker = touch(OUTDIR/'bam/{sample}/{sample}.done'),
          bam = OUTDIR/'bam/{sample}/{sample}_Aligned.sortedByCoord.out.bam'
     params:
@@ -71,12 +69,12 @@ rule STAR_align:
         mem = 8000,
         time = 1400
     conda:
-        '../envs/rnaseq.yaml'
+        'star_salmon'
     log: OUTDIR/'logs/{sample}.star_align.log'
     threads:
         32
     shell: "STAR --runThreadN {params.threads} "
-           "--readFilesIn {input.fq1} {input.fq2} "
+           "--readFilesIn {input.fq} "
            "--readFilesCommand gunzip -c " #format for paired end
            "--genomeDir {params.genomeDir} "
            "--sjdbGTFfile {params.annotation} "
@@ -87,6 +85,7 @@ rule STAR_align:
            "--outSAMattributes Standard "
            "--alignIntronMax {params.maxIntron} "
            "--quantMode GeneCounts &> {log} "
+
 
 
 rule featureCounts:
@@ -103,7 +102,7 @@ rule featureCounts:
         mem = 8000,
         time = 1400
     conda:
-        '../envs/rnaseq.yaml'
+        'star_salmon'
     log: OUTDIR/'logs/{sample}.featurecounts.log'
     threads:
         32
@@ -171,7 +170,7 @@ rule salmon_index:
         mem = 8000,
         time = 1400
     conda:
-        '../envs/rnaseq.yaml'
+        'star_salmon'
     log: OUTDIR/'logs/salmon_index.log'
     threads:
         32
@@ -197,7 +196,7 @@ if not config['se']:
             mem = 8000,
             time = 1400
         conda:
-            '../envs/rnaseq.yaml'
+            'star_salmon'
         log: OUTDIR/'logs/{sample}_quant.log'
         threads:
             32
@@ -219,7 +218,7 @@ else:
             mem=8000,
             time=1400
         conda:
-            '../envs/rnaseq.yaml'
+            'star_salmon'
         log: OUTDIR /'logs/{sample}_quant.log'
         threads:
             32

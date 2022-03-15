@@ -16,7 +16,7 @@ samples_to_merge = (sampleInfo.loc[sampleInfo.groupby('sample')
 SAMPLES = pd.read_csv(config['samples'])['sample'].unique()
 
 include: "rules/preprocessing.smk"
-include: "rules/rnaseq.smk"
+include: "rules/star_salmon.smk"
 
 """
 Preprocessing:

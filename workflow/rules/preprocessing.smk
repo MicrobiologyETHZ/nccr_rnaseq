@@ -94,7 +94,7 @@ if config['qc']:
                 mem = 8000,
                 time = 235
             conda:
-                "../envs/preprocessing.yaml"
+                "preprocessing"
             benchmark:
                 OUTDIR /'clean_reads/{sample}/{sample}.qc.benchmark'
             log:
@@ -148,7 +148,7 @@ if config['qc']:
                 mem=8000,
                 time=235
             conda:
-                "../envs/preprocessing.yaml"
+                "preprocessing"
             log:
                 log=OUTDIR / 'logs/{sample}.qc.log'
             threads:
@@ -186,7 +186,7 @@ else:
             mem = 8000,
             time = 235
         conda:
-            "../envs/preprocessing.yaml"
+            "preprocessing"
         benchmark:
             OUTDIR /'clean_reads/{sample}/{sample}.qc.benchmark'
         log:

@@ -1,4 +1,3 @@
-import argparse
 import subprocess
 import shlex
 import shutil
@@ -11,12 +10,10 @@ import yaml
 def main():
     pass
 
-
 from .scripts import fastq_dir_to_samplesheet as fds
 
 
 # RNAseq
-
 @main.command(help="Generate samplesheet from a directory of FastQ files.")
 @click.option('--configfile', '-c', default='', help='Configuration File')
 @click.option("-i", "--fastq_dir", help="Folder containing raw FastQ files.")
