@@ -27,6 +27,8 @@ refGff: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/r
 genomeDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/TAIR10/star_index
 overhang: 149
 maxIntron: 50000
+genomeSAindexNbases: 12
+
 
 # featureCounts
 strand: 0

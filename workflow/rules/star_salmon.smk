@@ -14,6 +14,7 @@ rule STAR_index:
         genome_no_suffix = Path(config['refGenome']).parent/Path(config['refGenome']).stem,
         annotation = config["refAnn"],
         overhang = config["overhang"],
+        genomeSAindexNbases = config["genomeSAindexNbases"],
         threads = 32,
         scratch = 6000,
         mem = 7700,
@@ -31,11 +32,13 @@ rule STAR_index:
           gunzip {input}
           STAR --runThreadN {params.threads} --runMode genomeGenerate \
         --genomeFastaFiles {params.genome_no_suffix} --genomeDir {params.genomeDir} \
+        --genomeSAindexNbases {params.genomeSAindexNbases} \
         --sjdbGTFfile {params.annotation} --sjdbOverhang {params.overhang}
           gzip {params.genome_no_suffix};
         else
           STAR --runThreadN {params.threads} --runMode genomeGenerate \
         --genomeFastaFiles {input} --genomeDir {params.genomeDir} \
+        --genomeSAindexNbases {params.genomeSAindexNbases} \
         --sjdbGTFfile {params.annotation} --sjdbOverhang {params.overhang}
         fi
         ";
@@ -47,7 +50,8 @@ rule STAR_index:
 
 def star_input(wildcards):
     if not config['se']:
-        return f'{OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.1.fq.gz {OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.2.fq.gz'
+        return [f'{OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.1.fq.gz',
+                f'{OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.2.fq.gz']
     else:
         return f'{OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.1.fq.gz'
 
@@ -59,6 +63,7 @@ rule STAR_align:
     params:
         qerrfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}.star_align.qerr',
         qoutfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}.star_align.qout',
+        files = lambda wildcards, input: " ".join(input[1]),
         genomeDir = config["genomeDir"],
         annotation = config["refAnn"],
         overhang = config["overhang"],

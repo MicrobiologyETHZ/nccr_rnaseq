@@ -27,6 +27,7 @@ refGff: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/r
 genomeDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/BDGP6
 overhang: 99
 maxIntron: 1000000
+genomeSAindexNbases: 13
 
 # featureCounts
 strand: 0
