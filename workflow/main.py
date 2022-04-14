@@ -62,12 +62,13 @@ def samples(configfile, fastq_dir, sample_file, read2_extension, read1_extension
 @click.option('--config', '-c',  help='Configuration File')
 @click.option('--local', is_flag=True, help="Run on local machine")
 @click.option('--dry', is_flag=True, help="Show commands without running them")
-def star(config, local, dry):
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def star(config, local, dry, jobs):
     click.echo("Running Eukaryotic RNASeq Pipeline: STAR/featureCounts")
     click.echo(f"Config file: {config}")
     click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'star', smk_file, dry, local)
+    cmd = snakemake_cmd(config, 'star', smk_file, dry, local, jobs)
     click.echo(" ".join(cmd))
 
 
@@ -75,12 +76,13 @@ def star(config, local, dry):
 @click.option('--config', '-c',  help='Configuration File')
 @click.option('--local', is_flag=True, help="Run on local machine")
 @click.option('--dry', is_flag=True, help="Show commands without running them")
-def salmon(config, local, dry):
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def salmon(config, local, dry, jobs):
     click.echo("Running Eukaryotic RNASeq Pipeline: Salmon")
     click.echo(f"Config file: {config}")
     click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'salmon', smk_file, dry, local)
+    cmd = snakemake_cmd(config, 'salmon', smk_file, dry, local, jobs)
     click.echo(" ".join(cmd))
 
 
@@ -94,11 +96,11 @@ def unlock(config):
     subprocess.check_call(cmd, cwd=wdPath)
 
 
-def snakemake_cmd(config, analysis, smk_file, dry, local, no_conda=False):
+def snakemake_cmd(config, analysis, smk_file, dry, local, jobs, no_conda=False):
     if dry:
         cmd = shlex.split(f'snakemake -s {smk_file} --configfile {config} -np {analysis} ')
     elif local:
-        cmd = shlex.split(f'snakemake -s {smk_file} --configfile {config} --use-conda -j 1 {analysis} ')
+        cmd = shlex.split(f'snakemake -s {smk_file} --configfile {config} --use-conda -j {jobs} {analysis} ')
     else:
         rstring = r'"DIR=$(dirname {params.qoutfile}); mkdir -p \"${{DIR}}\"; qsub -S /bin/bash -V -cwd -o {params.qoutfile} -e {params.qerrfile} -pe smp {threads} -l h_vmem={params.mem}M"'
         if no_conda:
@@ -106,7 +108,7 @@ def snakemake_cmd(config, analysis, smk_file, dry, local, no_conda=False):
         else:
             part1 = shlex.split(f'snakemake --configfile {config} -s {smk_file} --use-conda -k --cluster ')
         part2 = shlex.split(f'{rstring}')
-        part3 = shlex.split(f' -p -j 8 --max-jobs-per-second 1 {analysis}')
+        part3 = shlex.split(f' -p -j {jobs} --max-jobs-per-second 1 {analysis}')
         cmd = part1 + part2 + part3
     wdPath = Path(__file__).parent.absolute()
     subprocess.check_call(cmd, cwd=wdPath)
