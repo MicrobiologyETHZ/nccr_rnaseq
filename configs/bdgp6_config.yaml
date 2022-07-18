@@ -33,6 +33,12 @@ genomeSAindexNbases: 13
 strand: 0
 attribute: gene_id
 
+
+# htseq-count
+feature_type: gene
+
+
+
 # salmon/kallisto
 
 transcriptome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/BDGP6/Drosophila_melanogaster.BDGP6.32.cdna.all.fa.gz
