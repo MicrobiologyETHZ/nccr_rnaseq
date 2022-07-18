@@ -17,7 +17,7 @@ SAMPLES = pd.read_csv(config['samples'])['sample'].unique()
 
 include: "rules/preprocessing.smk"
 include: "rules/star_salmon.smk"
-include: "rules/bwa_featurecounts.smk"
+include: "rules/bwa_htseqcount.smk"
 
 """
 Preprocessing:
@@ -51,7 +51,7 @@ else:
 
 
 rule htseq_count:
-    input: [OUTDIR /f'htsetcount/{sample}/{sample}.htseqcount.txt' for sample in SAMPLES]
+    input: [OUTDIR /f'htseqcount/{sample}/{sample}.htseqcount.txt' for sample in SAMPLES]
 
 rule star:
     input: OUTDIR/f'counts/{config["projectName"]}.merged.featureCounts.csv'

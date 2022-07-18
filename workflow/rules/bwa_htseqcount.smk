@@ -1,8 +1,11 @@
 from pathlib import Path
 
+DATADIR = Path(config["dataDir"])
+OUTDIR = Path(config['outDir'])
+
 rule bwa_index:
     input: config['refGenome']
-    output: config['refGenome'].bwt,
+    output: f"{config['refGenome']}.bwt",
             marker = touch(f'{config["refGenome"]}.index.done')
     params:
         qerrfile = f'{config["refGenome"]}.bwa.qerr',
@@ -12,6 +15,8 @@ rule bwa_index:
         time = 1400
     conda:
         'bwa_htseq'
+    threads:
+        8
     shell: "bwa index {input}"
 
 
@@ -20,20 +25,20 @@ rule bwa_align:
     input:
         fq1 = OUTDIR/'clean_reads/{sample}/{sample}.1.fq.gz',
         fq2 = OUTDIR/'clean_reads/{sample}/{sample}.2.fq.gz',
-        index_done = Path(config['refGenome']).parent/f'{config["refGenome"]}.bwa.index.done',
+        index_done = f'{config["refGenome"]}.index.done',
     output:
         marker = touch(OUTDIR/'bwa/{sample}/{sample}.bwa.done'),
         bam = OUTDIR/'bwa/{sample}/{sample}.bam',
         bai = OUTDIR/'bwa/{sample}/{sample}.bam.bai'
     params:
-        qerrfile = OUTDIR/'log/{sample}/{sample}.bwa.qerr',
-        qoutfile = OUTDIR/'log/{sample}/{sample}.bwa.qout',
+        qerrfile = OUTDIR/'logs/{sample}.bwa.qerr',
+        qoutfile = OUTDIR/'logs/{sample}.bwa.qout',
         refGenome = config["refGenome"],
         scratch = 6000,
         mem = 7700,
         time = 1400
     log:
-        log = OUTDIR/'log/{sample}/{sample}.bwa.log'
+        log = OUTDIR/'logs/{sample}.bwa.log'
     conda:
         'bwa_htseq'
     threads:
@@ -49,13 +54,13 @@ rule alignment_stats:
     input: OUTDIR/'bwa/{sample}/{sample}.bam'
     output: OUTDIR/'bwa/{sample}/{sample}.bam.stats'
     params:
-        qerrfile = lambda wildcards: OUTDIR/f'bwa/{wildcards.sample}/{wildcards.sample}.samtools.stats.qerr',
-        qoutfile = lambda wildcards: OUTDIR/f'bwa/{wildcards.sample}/{wildcards.sample}.samtools.stats.qout',
+        qerrfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}.samtools.stats.qerr',
+        qoutfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}.samtools.stats.qout',
         scratch = 6000,
         mem = 7700,
         time = 1400
     log:
-        log = OUTDIR/'log/{sample}/{sample}.samtools.stats.log',
+        log = OUTDIR/'logs/{sample}.samtools.stats.log',
     conda:
         'bwa_htseq'
     threads:
@@ -64,23 +69,23 @@ rule alignment_stats:
          "samtools stats {input} > {output}"
 
 
-rule htseq_count:
+rule htseq:
     input: OUTDIR/'bwa/{sample}/{sample}.bam'
-    output: OUTDIR / 'htsetcount/{sample}/{sample}.htseqcount.txt'
+    output: OUTDIR /'htseqcount/{sample}/{sample}.htseqcount.txt'
     params:
-        qerrfile=lambda wildcards: OUTDIR / f'htseqcount/{wildcards.sample}/{wildcards.sample}.samtools.stats.qerr',
-        qoutfile=lambda wildcards: OUTDIR / f'htseqcount/{wildcards.sample}/{wildcards.sample}.samtools.stats.qout',
+        qerrfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.htseq.qerr',
+        qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.htseq.qout',
         scratch=6000,
         mem=7700,
         time=1400,
-        gff=config["refAnn"],
+        gff=config["refGff"],
         strand=config["strand"],
         attribute=config["attribute"],
         feature=config['feature_type']
     conda: 'bwa_htseq'
     log:
-        log = OUTDIR/'log/{sample}/{sample}.htset-count.log'
-    theads: 8
+        log = OUTDIR/'logs/{sample}.htseq-count.log'
+    threads: 8
     shell:
-        "htseq-count -f bam -r pos -s {params.strand} -a 10 -t {params.feature}"
+        "htseq-count -f bam -r pos -s {params.strand} -a 10 -t {params.feature} "
         "-i {params.attribute} -m union {input} {params.gff} > {output}"

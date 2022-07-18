@@ -1,0 +1,11 @@
+name: bwa_htseq
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - bwa==0.7.*
+  - samtools==1.13
+  - pip
+  - pip:
+      - HTSeq

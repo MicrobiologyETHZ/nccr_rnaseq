@@ -86,6 +86,21 @@ def salmon(config, local, dry, jobs):
     click.echo(" ".join(cmd))
 
 
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def prok(config, local, dry, jobs):
+    click.echo("Running Prokaryotci RNASeq Pipeline: BWA/HTSeq")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'htseq_count', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
+
+
 
 @main.command()
 @click.option('--config', '-c', default='configs/basic_config.yaml',
