@@ -15,15 +15,15 @@ rule STAR_index:
         annotation = config["refAnn"],
         overhang = config["overhang"],
         genomeSAindexNbases = config["genomeSAindexNbases"],
-        threads = 32,
-        scratch = 6000,
-        mem = 7700,
+        threads = 16,
+        scratch = 10000,
+        mem = 16000,
         time = 1400
     conda:
         'star_salmon'
     log: OUTDIR/'logs/STAR.index.log'
     threads:
-        32
+        16
     shell:
         '''
         #!/bin/bash

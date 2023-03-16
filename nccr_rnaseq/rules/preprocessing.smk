@@ -88,6 +88,7 @@ if config['qc']:
                 trimq = config['trimq'],
                 maq = config['mapq'],
                 minlen = config['minlen'],
+                mink = config['mink'],
                 qoutfile = lambda wildcards: OUTDIR /f'logs/qc/{wildcards.sample}.qc.qout',
                 qerrfile = lambda wildcards: OUTDIR /f'logs/qc/{wildcards.sample}.qc.qerr',
                 scratch = 500,
@@ -108,7 +109,7 @@ if config['qc']:
                 "outs={output.adapter_singletons} "
                 "refstats={output.adapter_stats} statscolumns=5 "
                 "overwrite=t ref={input.adapters} "
-                "ktrim=r k=23 mink=11 hdist=1  2>> {log.log} | "
+                "ktrim=r k=31 mink={params.mink} hdist=1  2>> {log.log} | "
                 "bbduk.sh -Xmx1G usejni=t pigz=t bgzip=f "
                 "interleaved=true overwrite=t "
                 "in=stdin.fq out=stdout.fq "
