@@ -91,8 +91,64 @@ def salmon(config, local, dry, jobs):
 @click.option('--local', is_flag=True, help="Run on local machine")
 @click.option('--dry', is_flag=True, help="Show commands without running them")
 @click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def sushi(config, local, dry, jobs):
+    click.echo("Running METAT RNASeq Pipeline: Sushicounter")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'sushi_align', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def bowtie(config, local, dry, jobs):
+    click.echo("Running Running METAT RNASeq Pipeline: Bowtie and featureCounts")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'bowtie', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def metasalmon(config, local, dry, jobs):
+    click.echo("Running Running METAT RNASeq Pipeline: Salmon")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'salmon_metat', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def rnafilter(config, local, dry, jobs):
+    click.echo("Running METAT RNASeq Pipeline: Running sortmerna")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'rna_filter', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
 def prok(config, local, dry, jobs):
-    click.echo("Running Prokaryotci RNASeq Pipeline: BWA/HTSeq")
+    click.echo("Running Prokaryotic RNASeq Pipeline: BWA/HTSeq")
     click.echo(f"Config file: {config}")
     click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
@@ -100,6 +156,18 @@ def prok(config, local, dry, jobs):
     click.echo(" ".join(cmd))
 
 
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def motus(config, local, dry, jobs):
+    click.echo("Running METAT RNASeq Pipeline: Profiling with motus")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'profile', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
 
 
 @main.command()

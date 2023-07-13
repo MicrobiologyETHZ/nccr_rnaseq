@@ -18,6 +18,8 @@ SAMPLES = pd.read_csv(config['samples'])['sample'].unique()
 include: "rules/preprocessing.smk"
 include: "rules/star_salmon.smk"
 include: "rules/bwa_htseqcount.smk"
+include: "rules/bowtie_featurecounts.smk"
+include: "rules/salmon_metat.smk"
 
 """
 Preprocessing:
@@ -45,13 +47,10 @@ else:
     print(f'{config["fastqc"]} is not a recognized option for fastqc')
     sys.exit(1)
 
+# EUKARYOTIC RULES
 
-# rule star:
-#     input: [OUTDIR/f'counts/{sample}/{sample}.count.txt' for sample in SAMPLES]
-
-
-rule htseq_count:
-    input: [OUTDIR /f'htseqcount/{sample}/{sample}.htseqcount.txt' for sample in SAMPLES]
+rule salmon:
+    input: [OUTDIR / f'salmon/{sample}_quant/quant.sf' for sample in SAMPLES]
 
 rule star:
     input: OUTDIR/f'counts/{config["projectName"]}.merged.featureCounts.csv'
@@ -80,9 +79,28 @@ rule mergeFeatureCounts:
         fdf = fdf.loc[:, ~fdf.columns.duplicated()]
         fdf.to_csv(output[0])
 
+# METAT RULES
+rule rna_filter:
+    input: [OUTDIR / f'rnasorted/{sample}.sortmerna.done' for sample in SAMPLES]
+
+rule bowtie:
+    input: [ OUTDIR/f'bowtie_featurecounts/{sample}/{sample}.count.txt' for sample in SAMPLES]
+
+rule htseq_count:
+    input: [OUTDIR /f'htseqcount/{sample}/{sample}.htseqcount.txt' for sample in SAMPLES]
+
+rule sushi_align:
+    input: [OUTDIR/f'sushibam/{sample}/{sample}.shushicounts' for sample in SAMPLES]
+
+rule salmon_metat:
+    input: [OUTDIR/f"salmon_metat/{sample}_quant/quant.sf" for sample in SAMPLES]
+
+
 
 # rule kallisto:
 #     input: [OUTDIR/f'kallisto/{sample}.done' for sample in SAMPLES]
 
-rule salmon:
-    input: [OUTDIR / f'salmon/{sample}_quant/quant.sf' for sample in SAMPLES]
+
+
+rule profile:
+    input: [OUTDIR/ f'motus/{sample}/{sample}.motus' for sample in SAMPLES]

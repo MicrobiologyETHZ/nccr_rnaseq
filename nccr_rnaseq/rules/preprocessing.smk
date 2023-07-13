@@ -197,6 +197,82 @@ else:
         shell:
             "cp {input.fq1} {output.fq1_clean}; cp {input.fq2} {output.fq2_clean} "
 
+rule sortmernaindex:
+    input:
+        rnadb = config['rnadb']
+    output:
+        marker=touch(OUTDIR / 'sortmerna/rnadb.index.done')
+    params:
+        output_dir = OUTDIR/'sortmerna',
+        qoutfile = OUTDIR / f'logs/rnadb.index.qout',
+        qerrfile=OUTDIR / f'logs/rnadb.index.qerr',
+        scratch=500,
+        mem=8000,
+        time=235
+    conda:
+        "preprocessing"
+    log:
+        log = OUTDIR / 'logs/rnadb.index.log'
+    threads:
+        16
+    shell:
+        "sortmerna --ref {input.rnadb}  --workdir {params.output_dir} --index 1"
+
+
+rule sortmerna:
+    input: index_marker = OUTDIR / 'sortmerna/rnadb.index.done',
+        rnadb= config['rnadb'],
+        fq1 = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
+        fq2 = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',
+    output:
+        marker= touch(OUTDIR / 'rnasorted/{sample}.sortmerna.done'),
+        fwd = OUTDIR/'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
+        rev = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
+    params:
+        index_dir=OUTDIR / 'sortmerna',
+        output_dir = lambda wildcards: OUTDIR/f'rnasorted/{wildcards.sample}',
+        other_prefix = lambda wildcards: OUTDIR/f'rnasorted/{wildcards.sample}/{wildcards.sample}.norna',
+        qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sortmerna.qout',
+        qerrfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sortmerna.qerr',
+        threads=16,
+        scratch=500,
+        mem=8000,
+        time=235
+    conda:
+        "preprocessing"
+    log:
+        log=OUTDIR / 'logs/{sample}.sortmerna.log'
+    threads: 16
+    shell:
+        "sortmerna  --ref {input.rnadb} --reads {input.fq1} --reads {input.fq2} "
+        "--idx-dir {params.index_dir}/idx --workdir {params.output_dir} "
+        "--index 0  --paired_out --out2 --fastx --threads {params.threads} "
+        "--other {params.other_prefix} --blast '1 cigar qcov' &> {log.log} "
+
+
+rule motus_profile:
+    input:
+        fq1 = OUTDIR/'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
+        fq2 = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
+
+    output:
+        OUTDIR / 'motus/{sample}/{sample}.motus'
+    params:
+        qerrfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.motus.qerr',
+        qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.motus.qout',
+        scratch=6000,
+        mem=7700,
+        time=1400
+    log:
+        log=OUTDIR / 'logs/{sample}.motus.log',
+    conda:
+        'motus'
+    threads:
+        16
+    shell:
+        "motus profile -f {input.fq1} -r {input.fq2} -t 16 -p -c -o {output}"
+
+
 # rule merge:
 #     input:
 #         fqz1 = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',

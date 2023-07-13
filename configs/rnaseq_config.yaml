@@ -20,6 +20,9 @@ minlen: 45
 fastqc: no # Options: no, before, after, both
 merge_replicates: false
 
+#sortmeRNA
+rnadb: /nfs/cds/Databases/SILVA/SILVA138/SILVA_138.1_SSURef_NR99_tax_silva.fasta
+
 # STAR
 refGenome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/GCF_000001735.4_TAIR10.1_genomic.fna
 refAnn: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/GCF_000001735.4_TAIR10.1_genomic.edited2.gtf

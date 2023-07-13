@@ -9,6 +9,7 @@ name_index: 1
 fq_fwd: _1.fq.gz
 fq_rvr: _2.fq.gz
 se: false
+
 #Preprocessing
 qc: yes
 mink: 11

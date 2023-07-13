@@ -1,0 +1,56 @@
+projectName: Sal_bowtie
+dataDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/raw_data
+outDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/
+samples: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/samples.csv
+
+sanitise_name: false
+name_delimiter: _
+name_index: 4
+fq_fwd: _R1.fastq.gz
+fq_rvr: _R2.fastq.gz
+se: false
+
+#Preprocessing
+qc: yes
+mink: 11
+trimq: 14 # 37
+mapq: 20
+minlen: 45
+
+fastqc: no # Options: no, before, after, both
+merge_replicates: false
+
+# sortme
+rnadb: /nfs/cds/Databases/SILVA/SILVA138/SILVA_138.1_SSURef_NR99_tax_silva.fasta
+
+# STAR and BWA
+refGenome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/ref/ASF_metagenome.fna
+refAnn: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/ref/ASF_Salmonella.gtf
+refGff: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/ref/ASF_Salmonella.gff
+genomeDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/BDGP6
+overhang: 99
+maxIntron: 1000000
+genomeSAindexNbases: 14
+
+# featureCounts
+strand: 0
+attribute: gene_id
+
+# salmon/kallisto
+
+transcriptome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/BDGP6/Drosophila_melanogaster.BDGP6.32.cdna.all.fa.gz
+kallistoIdx: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/AtRTD2_19April2016.idx
+
+
+feature_type: gene
+
+
+
+# Standard parameters. Dont change these!!!
+adapters: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/adapters.fa'
+phix: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/phix174_ill.ref.fa.gz'
+bbmap_human_ref: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/human_bbmap_ref/'
+bbmap_mouse_ref: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/mouse_bbmap_ref/'
+
+# todo move these to resources
+
