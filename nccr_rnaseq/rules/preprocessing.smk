@@ -201,7 +201,7 @@ rule sortmernaindex:
     input:
         rnadb = config['rnadb']
     output:
-        marker=touch(OUTDIR / 'sortmerna/rnadb.index.done')
+        marker=touch(f'{config["rnadb"]}.rnadb.index.done')
     params:
         output_dir = OUTDIR/'sortmerna',
         qoutfile = OUTDIR / f'logs/rnadb.index.qout',
@@ -220,7 +220,7 @@ rule sortmernaindex:
 
 
 rule sortmerna:
-    input: index_marker = OUTDIR / 'sortmerna/rnadb.index.done',
+    input: index_marker = f'{config["rnadb"]}.rnadb.index.done',
         rnadb= config['rnadb'],
         fq1 = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
         fq2 = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',

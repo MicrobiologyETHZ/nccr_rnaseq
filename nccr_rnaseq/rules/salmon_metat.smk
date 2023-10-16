@@ -1,17 +1,17 @@
 rule salmon_index_metat:
     input:
-        genome = config['refGenome']
-    output: marker = touch(f'{config["refGenome"]}.salmon_index.done'),
+        genome = config['transcriptome']
+    output: marker = touch(f'{config["transcriptome"]}.salmon_index.done'),
     params:
-        qerrfile = lambda wildcards: OUTDIR/f'logs/{Path(config["refGenome"]).stem}_salmon_index.qerr',
-        qoutfile = lambda wildcards: OUTDIR/f'logs/{Path(config["refGenome"]).stem}_salmon_index.qout',
-        salmonIdx = f"{Path(config['refGenome']).parent}/{Path(config['refGenome']).stem}_salmon_index",
+        qerrfile = lambda wildcards: OUTDIR/f'logs/{Path(config["transcriptome"]).stem}_salmon_index.qerr',
+        qoutfile = lambda wildcards: OUTDIR/f'logs/{Path(config["transcriptome"]).stem}_salmon_index.qout',
+        salmonIdx = f"{Path(config['transcriptome']).parent}/{Path(config['transcriptome']).stem}_salmon_index",
         scratch = 6000,
         mem = 8000,
         time = 1400
     conda:
         'star_salmon'
-    log: OUTDIR/f'logs/{Path(config["refGenome"]).stem}_salmon_index.log'
+    log: OUTDIR/f'logs/{Path(config["transcriptome"]).stem}_salmon_index.log'
     threads:
         32
     shell:
@@ -22,12 +22,12 @@ rule salmon_run_metat:
         input:
             fwd = OUTDIR/'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
             rev = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
-            indx_marker = f'{config["refGenome"]}.salmon_index.done'
+            indx_marker = f'{config["transcriptome"]}.salmon_index.done'
         output:  OUTDIR/"salmon_metat/{sample}_quant/quant.sf"
         params:
             qerrfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}_salmon_metat.qerr',
             qoutfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}_salmon_metat.qout',
-            salmonIdx = f"{Path(config['refGenome']).parent}/{Path(config['refGenome']).stem}_salmon_index",
+            salmonIdx = f"{Path(config['transcriptome']).parent}/{Path(config['transcriptome']).stem}_salmon_index",
             out_dir = lambda wildcards: OUTDIR/f'salmon_metat/{wildcards.sample}_quant',
             scratch = 6000,
             mem = 8000,

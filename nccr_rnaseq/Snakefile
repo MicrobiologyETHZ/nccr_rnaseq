@@ -20,6 +20,13 @@ include: "rules/star_salmon.smk"
 include: "rules/bwa_htseqcount.smk"
 include: "rules/bowtie_featurecounts.smk"
 include: "rules/salmon_metat.smk"
+include: "rules/coptr.smk"
+
+if 'teAnn' in config.keys():
+    include: "rules/te_counts.smk"
+    rule count_te:
+        input: [OUTDIR/f'tetranscripts/{sample}/{sample}.te.done' for sample in SAMPLES]
+
 
 """
 Preprocessing:
@@ -104,3 +111,13 @@ rule salmon_metat:
 
 rule profile:
     input: [OUTDIR/ f'motus/{sample}/{sample}.motus' for sample in SAMPLES]
+
+# SATDNA rules
+
+rule satdna:
+    input: [OUTDIR/f'kseek/{sample}.rep.total' for sample in SAMPLES]
+
+
+
+rule run_coptr:
+    input: OUTDIR/'coptr.done'

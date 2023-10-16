@@ -3,6 +3,7 @@ from pathlib import Path
 DATADIR = Path(config["dataDir"])
 OUTDIR = Path(config['outDir'])
 
+
 rule bwa_index:
     input: config['refGenome']
     output: f"{config['refGenome']}.bwt",
@@ -10,6 +11,22 @@ rule bwa_index:
     params:
         qerrfile = f'{config["refGenome"]}.bwa.qerr',
         qoutfile = f'{config["refGenome"]}.bwa.qout',
+        scratch = 6000,
+        mem = 7700,
+        time = 1400
+    conda:
+        'bwa_htseq'
+    threads:
+        8
+    shell: "bwa index {input}"
+
+rule bwa_index_transcriptome:
+    input: config['transcriptome']
+    output: f"{config['transcriptome']}.bwt",
+            marker = touch(f'{config["transcriptome"]}.bwa_index.done')
+    params:
+        qerrfile = f'{config["transcriptome"]}.bwa.qerr',
+        qoutfile = f'{config["transcriptome"]}.bwa.qout',
         scratch = 6000,
         mem = 7700,
         time = 1400
@@ -55,14 +72,14 @@ rule bwa_for_sushi_fwd:
     input:
         fq1 = OUTDIR/'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
         #fq2 = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
-        index_done = f'{config["refGenome"]}.bwa_index.done',
+        index_done = f'{config["transcriptome"]}.bwa_index.done',
     output:
         r1 = OUTDIR/'sushibam/{sample}/{sample}.r1.bam',
        # r2 = OUTDIR/'sushibam/{sample}/{sample}.r2.bam
     params:
         qerrfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sushi_bwa_fwd.qerr',
         qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sushi_bwa_fwd.qout',
-        refGenome=config["refGenome"],
+        refGenome=config["transcriptome"],
         scratch=6000,
         mem=7700,
         time=1400
@@ -79,13 +96,13 @@ rule bwa_for_sushi_fwd:
 rule bwa_for_sushi_rev:
     input:
         fq2 = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
-        index_done = f'{config["refGenome"]}.index.done',
+        index_done = f'{config["transcriptome"]}.bwa_index.done',
     output:
        r2 = OUTDIR/'sushibam/{sample}/{sample}.r2.bam'
     params:
         qerrfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sushi_bwa_rev.qerr',
         qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sushi_bwa_rev.qout',
-        refGenome=config["refGenome"],
+        refGenome=config["transcriptome"],
         scratch=6000,
         mem=7700,
         time=1400
@@ -108,7 +125,6 @@ rule sushi_merge:
     params:
         qerrfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sushi_bwa.qerr',
         qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sushi_bwa.qout',
-        refGenome=config["refGenome"],
         scratch=6000,
         mem=7700,
         time=1400
@@ -134,6 +150,10 @@ rule sushi_count:
         scratch=6000,
         mem=7700,
         time=1400
+    conda:
+        'sushi'
+    threads:
+        16
     log:
         log=OUTDIR / 'logs/{sample}.sushi_count.log'
     shell:

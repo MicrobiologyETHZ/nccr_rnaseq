@@ -77,6 +77,20 @@ def star(config, local, dry, jobs):
 @click.option('--local', is_flag=True, help="Run on local machine")
 @click.option('--dry', is_flag=True, help="Show commands without running them")
 @click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def count_te(config, local, dry, jobs):
+    click.echo("Running Eukaryotic RNASeq Pipeline: TEtranscripts")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'count_te', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
 def salmon(config, local, dry, jobs):
     click.echo("Running Eukaryotic RNASeq Pipeline: Salmon")
     click.echo(f"Config file: {config}")
@@ -177,6 +191,34 @@ def unlock(config):
     cmd = shlex.split(f'snakemake --configfile {config} -j 1 --unlock ')
     wdPath = Path(__file__).parent.absolute()
     subprocess.check_call(cmd, cwd=wdPath)
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def count_reps(config, local, dry, jobs):
+    click.echo("Running Eukaryotic RNASeq Pipeline: K-seek")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'satdna', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
+
+@main.command()
+@click.option('--config', '-c',  help='Configuration File')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def coptr(config, local, dry, jobs):
+    click.echo("Running CoPTR")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format('locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'run_coptr', smk_file, dry, local, jobs)
+    click.echo(" ".join(cmd))
+
 
 
 def snakemake_cmd(config, analysis, smk_file, dry, local, jobs, no_conda=False):

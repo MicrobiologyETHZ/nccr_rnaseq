@@ -6,7 +6,7 @@ OUTDIR = Path(config['outDir'])
 
 rule STAR_index:
     input: config['refGenome']
-    output: touch(Path(config['refGenome']).parent/f'{config["projectName"]}.star.index.done')
+    output: marker = touch(f'{config["refGenome"]}.star.index.done')
     params:
         qerrfile = OUTDIR/'logs/STAR.index.qerr',
         qoutfile = OUTDIR/'logs/STAR.index.qout',
@@ -56,7 +56,7 @@ def star_input(wildcards):
         return f'{OUTDIR}/clean_reads/{wildcards.sample}/{wildcards.sample}.1.fq.gz'
 
 rule STAR_align:
-    input: index_done = Path(config['refGenome']).parent/f'{config["projectName"]}.star.index.done',
+    input: index_done = f'{config["refGenome"]}.star.index.done',
         fq = star_input
     output: marker = touch(OUTDIR/'bam/{sample}/{sample}.done'),
          bam = OUTDIR/'bam/{sample}/{sample}_Aligned.sortedByCoord.out.bam'
@@ -68,6 +68,7 @@ rule STAR_align:
         annotation = config["refAnn"],
         overhang = config["overhang"],
         maxIntron=config['maxIntron'],
+        otherParams=config['starParams'],
         prefix = lambda wildcards: OUTDIR/f'bam/{wildcards.sample}/{wildcards.sample}_',
         threads = 8,
         scratch = 6000,
@@ -89,8 +90,8 @@ rule STAR_align:
            "--outSAMunmapped Within "
            "--outSAMattributes Standard "
            "--alignIntronMax {params.maxIntron} "
+           "{params.otherParams} "
            "--quantMode GeneCounts &> {log} "
-
 
 
 rule featureCounts:
