@@ -63,6 +63,31 @@ def getFastq2(wildcards):
     return sampleInfo_merged[sampleInfo_merged['sample'] == wildcards.sample].fastq_2
 
 
+rule fastq_screen:
+    input:
+        fq1 = getFastq1,
+        fq2 = getFastq2,
+    output: 
+        #fq1_report = str(OUTDIR/'qc/{sample}') + f'{config["fq_fwd"]}_screen.txt',
+        #fq2_report = str(OUTDIR/'qc/{sample}') + f'{config["fq_rvr"]}_screen.txt',
+        marker = touch(OUTDIR/'qc/{sample}.fastqc_screen.done')
+    conda:
+        "preprocessing"
+    params:
+        outdir = OUTDIR/"qc",
+        qoutfile = lambda wildcards: OUTDIR /f'logs/{wildcards.sample}.fastq_screen.qout',
+        qerrfile = lambda wildcards: OUTDIR /f'logs/{wildcards.sample}.fastq_screen.qerr',
+        scratch = 500,
+        mem = 8000,
+        time = 235
+    log:
+        log = OUTDIR/'logs/{sample}_fastqc_screen.log'
+    threads:16
+    shell:
+        "fastq_screen --threads 16 {input.fq1} --outdir {params.outdir} &> {log.log}; "
+        "fastq_screen --threads 16 {input.fq2} --outdir {params.outdir} &>> {log.log} "
+    
+
 if config['qc']:
     if not config['se']:
         rule qc:
@@ -70,7 +95,8 @@ if config['qc']:
                 fq1 = getFastq1,
                 fq2 = getFastq2,
                 adapters = Path(config['adapters']),
-                phix = Path(config['phix'])
+                phix = Path(config['phix']),
+                fastqc_screen = OUTDIR/'qc/{sample}.fastqc_screen.done'
             output:
                 fq1_clean = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
                 fq2_clean = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',
@@ -203,7 +229,7 @@ rule sortmernaindex:
     output:
         marker=touch(f'{config["rnadb"]}.rnadb.index.done')
     params:
-        output_dir = OUTDIR/'sortmerna',
+        output_dir = Path(config["rnadb"]).parent/'sortmerna',
         qoutfile = OUTDIR / f'logs/rnadb.index.qout',
         qerrfile=OUTDIR / f'logs/rnadb.index.qerr',
         scratch=500,
@@ -216,7 +242,7 @@ rule sortmernaindex:
     threads:
         16
     shell:
-        "sortmerna --ref {input.rnadb}  --workdir {params.output_dir} --index 1"
+        "sortmerna --ref {input.rnadb}  --workdir {params.output_dir} --index 1 --threads 16"
 
 
 rule sortmerna:
@@ -229,15 +255,15 @@ rule sortmerna:
         fwd = OUTDIR/'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
         rev = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
     params:
-        index_dir=OUTDIR / 'sortmerna',
+        index_dir=Path(config["rnadb"]).parent/ 'sortmerna/idx',
         output_dir = lambda wildcards: OUTDIR/f'rnasorted/{wildcards.sample}',
         other_prefix = lambda wildcards: OUTDIR/f'rnasorted/{wildcards.sample}/{wildcards.sample}.norna',
         qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sortmerna.qout',
         qerrfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sortmerna.qerr',
         threads=16,
         scratch=500,
-        mem=8000,
-        time=235
+        mem=16000,
+        time=1400
     conda:
         "preprocessing"
     log:
@@ -245,7 +271,7 @@ rule sortmerna:
     threads: 16
     shell:
         "sortmerna  --ref {input.rnadb} --reads {input.fq1} --reads {input.fq2} "
-        "--idx-dir {params.index_dir}/idx --workdir {params.output_dir} "
+        "--idx-dir {params.index_dir} --workdir {params.output_dir} "
         "--index 0  --paired_out --out2 --fastx --threads {params.threads} "
         "--other {params.other_prefix} --blast '1 cigar qcov' &> {log.log} "
 

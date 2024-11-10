@@ -16,7 +16,7 @@ rule bowtie_index:
     conda:
         'star_salmon'
     threads:
-        8
+        16
     log:
         OUTDIR/f'logs/{Path(config["refGenome"]).stem}.bowtie.log'
     shell: "bowtie2-build {input} {input} &> {log}"
@@ -46,7 +46,7 @@ rule bowtie_align:
         16
     shell:
         "bowtie2 -x  {params.refGenome} "
-        "-1 {input.fq1} -2 {input.fq2}  | samtools sort --reference {params.refGenome} "
+        "-1 {input.fq1} -2 {input.fq2}  | samtools view -q2 -f2 -bh - |samtools sort --reference {params.refGenome} "
         "-l 9 -@ 4 -O bam -o {output.bam} -T {output.bam}.tmp; samtools index {output.bam};"
 
 
@@ -74,4 +74,4 @@ rule bowtie_featurecounts:
         "featureCounts -p -T {params.threads} "
         "-a {params.annotation} -o {output} -t {params.feature_type} "
         "-g {params.attribute} {input.bam} -s {params.strand} "
-        "-M --fraction &> {log} "
+        " &> {log} "

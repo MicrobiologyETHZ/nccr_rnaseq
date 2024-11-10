@@ -94,6 +94,35 @@ rule STAR_align:
            "--quantMode GeneCounts &> {log} "
 
 
+
+rule featureCounts_mm:
+    input: bam = OUTDIR/'bam/{sample}/{sample}_Aligned.sortedByCoord.out.bam',
+    output: OUTDIR/'counts/{sample}/{sample}.count.mm.txt'
+    params:
+        qerrfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}.featurecounts.mm.qerr',
+        qoutfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}.featurecounts.mm.qout',
+        annotation = config["refAnn"],
+        attribute = config["attribute"],
+        feature_type = config["feature_type"],
+        strand = config["strand"],
+        threads = 32,
+        scratch = 6000,
+        mem = 8000,
+        time = 1400
+    conda:
+        'star_salmon'
+    log: OUTDIR/'logs/{sample}.featurecounts.mm.log'
+    threads:
+        32
+    shell:
+        "samtools view -h {input.bam}|sed -r 's/NH:i:[0-9]+/NH:i:1/g'|samtools view -bh - > {input.bam}.edited; "
+        "featureCounts -p -T {params.threads} " 
+        "--fraction -O "
+        "-a {params.annotation} -o {output} "
+        "-t {params.feature_type} "
+        "-g {params.attribute} {input.bam}.edited -s {params.strand} &> {log}"
+
+
 rule featureCounts:
     input: bam = OUTDIR/'bam/{sample}/{sample}_Aligned.sortedByCoord.out.bam',
     output: OUTDIR/'counts/{sample}/{sample}.count.txt'
@@ -102,6 +131,7 @@ rule featureCounts:
         qoutfile = lambda wildcards: OUTDIR/f'logs/{wildcards.sample}.featurecounts.qout',
         annotation = config["refAnn"],
         attribute = config["attribute"],
+        feature_type = config["feature_type"],
         strand = config["strand"],
         threads = 32,
         scratch = 6000,
@@ -114,8 +144,10 @@ rule featureCounts:
         32
     shell:
         "featureCounts -p -T {params.threads} " 
-        "-a {params.annotation} -o {output} " 
+        "-a {params.annotation} -o {output} "
+        "-t {params.feature_type} "
         "-g {params.attribute} {input.bam} -s {params.strand} &> {log}"
+
 
 
 
@@ -165,7 +197,7 @@ rule kallisto_quant:
 rule salmon_index:
     input: tna = config['transcriptome'],
         genome = config['refGenome']
-    output: marker = touch(Path(config['transcriptome']).parent/f"{config['projectName']}.salmon.index.done"),
+    output: marker = touch(f'{config["transcriptome"]}.salmon.index.done'),
     params:
         qerrfile = lambda wildcards: OUTDIR/f'logs/salmon_index.qerr',
         qoutfile = lambda wildcards: OUTDIR/f'logs/salmon_index.qout',
@@ -191,7 +223,7 @@ if not config['se']:
     rule salmon_run:
         input: fq1 = OUTDIR/"clean_reads/{sample}/{sample}.1.fq.gz",
             fq2= OUTDIR / "clean_reads/{sample}/{sample}.2.fq.gz",
-            indx_marker = Path(config['transcriptome']).parent/f"{config['projectName']}.salmon.index.done"
+            indx_marker = f'{config["transcriptome"]}.salmon.index.done'
         output:  OUTDIR/"salmon/{sample}_quant/quant.sf"
         params:
             qerrfile = lambda wildcards: OUTDIR/f'logs/salmon_index.qerr',
@@ -213,7 +245,7 @@ if not config['se']:
 else:
     rule salmon_run:
         input: fq1=OUTDIR / "clean_reads/{sample}/{sample}.1.fq.gz",
-            indx_marker=Path(config['transcriptome']).parent/f"{config['projectName']}.salmon.index.done"
+            indx_marker = f'{config["transcriptome"]}.salmon.index.done'
         output: OUTDIR / "salmon/{sample}_quant/quant.sf"
         params:
             qerrfile=lambda wildcards: OUTDIR / f'logs/salmon_index.qerr',
