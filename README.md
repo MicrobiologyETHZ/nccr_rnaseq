@@ -46,6 +46,12 @@ Example:
 
 - Can be generated using `nccrRna samples -c config.yaml` or
 
+=======
+```shell
+
+nccrRna samples -i <FASTQ_DIR> -o <OUTPUT_DIR> -r1 <FWD_SUFFIX> -r2 <RVR_SUFFIX> -sn -sd _ -si 1 
+
+```
 
 Where:
 `-r1` and `-r2` are forward and reverse extensions (e.g. _R1.fq.gz and _R2.fq.gz). Add `-sn` if you want to clean up the sample name, i.e. extract sample name from sequencing file name.
