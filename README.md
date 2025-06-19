@@ -44,13 +44,8 @@ Example:
 | Sample1 | L0001 | ./Sample1_L0001_R1.fq.gz | ./Sample1_L001_R2.fq.gz |
 
 
-- Can be generated using `rnapipe samples -c config.yaml` or
+- Can be generated using `nccrRna samples -c config.yaml` or
 
-```shell
-
-rnapipe samples -i <FASTQ_DIR> -o <OUTPUT_DIR> -r1 <FWD_SUFFIX> -r2 <RVR_SUFFIX> -sn -sd _ -si 1 
-
-```
 
 Where:
 `-r1` and `-r2` are forward and reverse extensions (e.g. _R1.fq.gz and _R2.fq.gz). Add `-sn` if you want to clean up the sample name, i.e. extract sample name from sequencing file name.
@@ -69,7 +64,7 @@ This code was adopted from the one used by [nf-core rnaseq pipeline](https://git
 You will need the genome sequence in FASTA format, as well as annotation file in gtf format. For many model organisms these can be dowloaded [here]().
 
 ```shell
-rnapipe star -c <config_file>
+nccrRna star -c <config_file>
 ```
 
 - By default will try to submit jobs to SGE queue system, add `--local` to run locally. 

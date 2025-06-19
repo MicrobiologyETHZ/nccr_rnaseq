@@ -24,8 +24,10 @@ rule bowtie_index:
 
 rule bowtie_align:
     input:
-        fq1 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
-        fq2 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
+        #fq1 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
+        #fq2 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
+        fq1 = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
+        fq2 = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',
         index_done = f'{config["refGenome"]}.bowtie.index.done',
     output:
         marker = touch(OUTDIR/'bowtie/{sample}/{sample}.bowtie.done'),
@@ -46,7 +48,7 @@ rule bowtie_align:
         16
     shell:
         "bowtie2 -x  {params.refGenome} "
-        "-1 {input.fq1} -2 {input.fq2}  | samtools view -q2 -f2 -bh - |samtools sort --reference {params.refGenome} "
+        "-1 {input.fq1} -2 {input.fq2}  | samtools view -q10 -f2 -bh - |samtools sort --reference {params.refGenome} "
         "-l 9 -@ 4 -O bam -o {output.bam} -T {output.bam}.tmp; samtools index {output.bam};"
 
 

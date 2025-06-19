@@ -20,8 +20,8 @@ rule salmon_index_metat:
 
 rule salmon_run_metat:
         input:
-            fwd = OUTDIR/'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
-            rev = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
+            fwd = OUTDIR / "clean_reads/{sample}/{sample}.1.fq.gz",
+            rev =  OUTDIR / "clean_reads/{sample}/{sample}.2.fq.gz",
             indx_marker = f'{config["transcriptome"]}.salmon_index.done'
         output:  OUTDIR/"salmon_metat/{sample}_quant/quant.sf"
         params:
@@ -39,4 +39,5 @@ rule salmon_run_metat:
             32
         shell:
             "salmon quant -i {params.salmonIdx} -l A -1 {input.fwd} -2 {input.rev} "
-            "-p 8 --validateMappings --gcBias  -o {params.out_dir} &> {log}"
+            #"-p 8 --validateMappings --gcBias  -o {params.out_dir} &> {log}"
+            "-p 32 --meta  -o {params.out_dir} &> {log}"

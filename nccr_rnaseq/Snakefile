@@ -78,69 +78,63 @@ rule salmon:
 rule star:
     input: OUTDIR/f'counts/{config["projectName"]}.merged.featureCounts.csv'
 
-# if 'multimap' in config.keys() and config['multimap'] == True:
-#     mergeFeatureCounts_files = [
-#         OUTDIR/f'counts/{sample}/{sample}.count.mm.txt' for sample in SAMPLES]
-#     rule mergeFeatureCounts:
-#         input: mergeFeatureCounts_files
-#         output: OUTDIR / \
-#             f'counts/{config["projectName"]}.merged.featureCounts.csv'
-#         params:
-#             def qerrfile(wildcards): return OUTDIR / \
-#                 f'logs/merge.featurecounts.qerr',
+if 'multimap' in config.keys() and config['multimap'] == True:
+    mergeFeatureCounts_files = [
+        OUTDIR/f'counts/{sample}/{sample}.count.mm.txt' for sample in SAMPLES]
+    rule mergeFeatureCounts:
+        input: mergeFeatureCounts_files
+        output: OUTDIR / \
+            f'counts/{config["projectName"]}.merged.featureCounts.csv'
+        params:
+            qerrfile = OUTDIR / f'logs/merge.featurecounts.qerr',
+            qoutfile = OUTDIR / f'logs/merge.featurecounts.qout',
+            outdir = OUTDIR/'counts',
+            threads = 32,
+            scratch = 6000,
+            mem = 8000,
+            time = 1400
+        log: OUTDIR/'logs/featurecounts.merge.log'
+        threads:
+            4
+        run:
+            pd_list = []
+            for f in input:
+                df = pd.read_table(
+                    f, skiprows=[0], index_col=0).iloc[:, [4, 5]]
+                df.columns = ["Length", Path(f).stem.split(".")[0]]
+                pd_list.append(df)
+            fdf = pd.concat(pd_list, axis=1)
+            fdf = fdf.loc[:, ~fdf.columns.duplicated()]
+            fdf.to_csv(output[0])
 
-#             def qoutfile(wildcards): return OUTDIR / \
-#                 f'logs/merge.featurecounts.qout',
-#             outdir = OUTDIR/'counts',
-#             threads = 32,
-#             scratch = 6000,
-#             mem = 8000,
-#             time = 1400
-#         log: OUTDIR/'logs/featurecounts.merge.log'
-#         threads:
-#             4
-#         run:
-#             pd_list = []
-#             for f in input:
-#                 df = pd.read_table(
-#                     f, skiprows=[0], index_col=0).iloc[:, [4, 5]]
-#                 df.columns = ["Length", Path(f).stem.split(".")[0]]
-#                 pd_list.append(df)
-#             fdf = pd.concat(pd_list, axis=1)
-#             fdf = fdf.loc[:, ~fdf.columns.duplicated()]
-#             fdf.to_csv(output[0])
-
-# else:
-#     mergeFeatureCounts_files = [
-#         OUTDIR/f'counts/{sample}/{sample}.count.txt' for sample in SAMPLES]
-#     rule mergeFeatureCounts:
-#         input: mergeFeatureCounts_files
-#         output: OUTDIR / \
-#             f'counts/{config["projectName"]}.merged.featureCounts.csv'
-#         params:
-#             def qerrfile(wildcards): return OUTDIR / \
-#                 f'logs/merge.featurecounts.qerr',
-
-#             def qoutfile(wildcards): return OUTDIR / \
-#                 f'logs/merge.featurecounts.qout',
-#             outdir = OUTDIR/'counts',
-#             threads = 32,
-#             scratch = 6000,
-#             mem = 8000,
-#             time = 1400
-#         log: OUTDIR/'logs/featurecounts.merge.log'
-#         threads:
-#             4
-#         run:
-#             pd_list = []
-#             for f in input:
-#                 df = pd.read_table(
-#                     f, skiprows=[0], index_col=0).iloc[:, [4, 5]]
-#                 df.columns = ["Length", Path(f).stem.split(".")[0]]
-#                 pd_list.append(df)
-#             fdf = pd.concat(pd_list, axis=1)
-#             fdf = fdf.loc[:, ~fdf.columns.duplicated()]
-#             fdf.to_csv(output[0])
+else:
+    mergeFeatureCounts_files = [
+        OUTDIR/f'counts/{sample}/{sample}.count.txt' for sample in SAMPLES]
+    rule mergeFeatureCounts:
+        input: mergeFeatureCounts_files
+        output: OUTDIR / \
+            f'counts/{config["projectName"]}.merged.featureCounts.csv'
+        params:
+            qerrfile = OUTDIR / f'logs/merge.featurecounts.qerr',
+            qoutfile = OUTDIR / f'logs/merge.featurecounts.qout',
+            outdir = OUTDIR/'counts',
+            threads = 32,
+            scratch = 6000,
+            mem = 8000,
+            time = 1400
+        log: OUTDIR/'logs/featurecounts.merge.log'
+        threads:
+            4
+        run:
+            pd_list = []
+            for f in input:
+                df = pd.read_table(
+                    f, skiprows=[0], index_col=0).iloc[:, [4, 5]]
+                df.columns = ["Length", Path(f).stem.split(".")[0]]
+                pd_list.append(df)
+            fdf = pd.concat(pd_list, axis=1)
+            fdf = fdf.loc[:, ~fdf.columns.duplicated()]
+            fdf.to_csv(output[0])
 
 # METAT RULES
 rna_filter_files = [

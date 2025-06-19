@@ -218,7 +218,7 @@ rule salmon_index:
         'cat {input.tna} {input.genome} > {params.gentrome}; '
         'salmon index -t {params.gentrome} -d {params.decoys} -i {params.salmonIdx} -p 32 &> {log}'
 
-
+        
 if not config['se']:
     rule salmon_run:
         input: fq1 = OUTDIR/"clean_reads/{sample}/{sample}.1.fq.gz",

@@ -1,0 +1,51 @@
+projectName: mvirs_metat
+dataDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/09_23_coptr/reads/glu
+outDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/sunagawa/mvirs_eda/scratch
+samples: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/09_23_coptr/samples.csv
+
+sanitise_name: false
+name_delimiter: _
+name_index: 3
+fq_fwd: .1.fq.gz
+fq_rvr: .2.fq.gz
+se: false
+
+#Preprocessing
+qc: no
+mink: 11
+trimq: 14 # 37
+mapq: 20
+minlen: 45
+
+fastqc: no # Options: no, before, after, both
+merge_replicates: false
+
+# STAR and BWA
+refGenome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/09_23_coptr/ecoli_db/Ecoli_hs.fasta
+refAnn: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/ansintsova/Projects_NCCR/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/ref/07-07-23_OLIGO-ASF-LCM-SL1344.gff
+refGff: /nfs/nas22/fs2202/biol_micro_bioinf_nccr/hardt/nguyenb/tnseq/scratch/03_23_transcriptomics/ref/07-07-23_OLIGO-ASF-LCM-SL1344_edited.gff
+genomeDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/BDGP6
+overhang: 99
+maxIntron: 1000000
+genomeSAindexNbases: 14
+starParams: ''
+rnadb: /nfs/cds/Databases/SILVA/SILVA138/SILVA_138.1_SSURef_NR99_tax_silva.fasta
+# featureCounts
+strand: 0
+attribute: ID
+
+# salmon/kallisto
+
+transcriptome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/BDGP6/Drosophila_melanogaster.BDGP6.32.cdna.all.fa.gz
+kallistoIdx: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/AtRTD2_19April2016.idx
+
+
+feature_type: gene
+
+
+
+# Standard parameters. Dont change these!!!
+adapters: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/adapters.fa'
+phix: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/phix174_ill.ref.fa.gz'
+bbmap_human_ref: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/human_bbmap_ref/'
+bbmap_mouse_ref: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/mouse_bbmap_ref/'
