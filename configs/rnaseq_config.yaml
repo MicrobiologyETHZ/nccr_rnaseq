@@ -41,6 +41,11 @@ attribute: gene_id
 transcriptome: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/AtRTD2_19April2016.fa
 kallistoIdx: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/ref/ath/AtRTD2_19April2016.idx
 
+# Functional annotation databases
+eggnog_data_dir: '/science/ansintsova/eggnog-data/'
+dbcan_db_dir: '/science/ansintsova/dbCAN/db'
+cayman_db_dir: '/nfs/cds-1/IMB-databases/CAYMAN/v3'
+
 
 
 

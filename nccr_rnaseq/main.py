@@ -250,6 +250,23 @@ def coptr(config, local, dry, jobs):
     click.echo(" ".join(cmd))
 
 
+@main.command()
+@click.option('--config', '-c', help='Configuration File')
+@click.option('--partition', '-p', default='institute', help='Which server to run on')
+@click.option('--local', is_flag=True, help="Run on local machine")
+@click.option('--dry', is_flag=True, help="Show commands without running them")
+@click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
+def annotate(config, local, dry, jobs, partition):
+    click.echo("Running Complete Functional Annotation Pipeline: eggNOG + dbCAN + cayman")
+    click.echo(f"Config file: {config}")
+    click.echo("Running {}".format(
+        'locally' if local else ('dry' if dry else 'on cluster')))
+    smk_file = "Snakefile"
+    cmd = snakemake_cmd(config, 'functional_annotation', smk_file, dry,
+                        local, jobs, partition=partition)
+    click.echo(" ".join(cmd))
+
+
 def snakemake_cmd(config, analysis, smk_file, dry,
                   local, jobs, no_conda=False, partition='institute'):
     if dry:

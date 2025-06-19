@@ -24,6 +24,7 @@ include: "rules/bowtie_featurecounts.smk"
 include: "rules/salmon_metat.smk"
 include: "rules/coptr.smk"
 include: "rules/mvirs.smk"
+include: "rules/functional_annotation.smk"
 
 
 mvir_files = [
@@ -178,3 +179,20 @@ rule salmon_metat:
 
 rule run_coptr:
     input: OUTDIR/'coptr.done'
+
+
+# FUNCTIONAL ANNOTATION RULES
+eggnog_files = [
+    OUTDIR / f'eggnog/{sample}/{sample}.eggnog.done' for sample in SAMPLES]
+
+dbcan_files = [
+    OUTDIR / f'dbcan/output_{sample}/{sample}.dbcan.done' for sample in SAMPLES]
+
+cayman_files = [
+    OUTDIR / f'cayman/{sample}/{sample}.cayman.done' for sample in SAMPLES]
+
+rule functional_annotation:
+    input:
+        eggnog_files,
+        dbcan_files,
+        cayman_files
