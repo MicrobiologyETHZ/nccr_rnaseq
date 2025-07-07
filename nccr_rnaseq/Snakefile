@@ -23,7 +23,7 @@ include: "rules/bwa_htseqcount.smk"
 include: "rules/bowtie_featurecounts.smk"
 include: "rules/salmon_metat.smk"
 include: "rules/coptr.smk"
-include: "rules/mvirs.smk"
+# include: "rules/mvirs.smk"
 include: "rules/functional_annotation.smk"
 
 

@@ -24,10 +24,10 @@ rule bowtie_index:
 
 rule bowtie_align:
     input:
-        #fq1 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
-        #fq2 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
-        fq1 = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
-        fq2 = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',
+        fq1 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
+        fq2 = OUTDIR / 'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
+        #fq1 = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
+        #fq2 = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',
         index_done = f'{config["refGenome"]}.bowtie.index.done',
     output:
         marker = touch(OUTDIR/'bowtie/{sample}/{sample}.bowtie.done'),
