@@ -1,10 +1,16 @@
-name:
-  star_salmon
+name: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/conda_envs/star_salmon
 channels:
   - conda-forge
   - bioconda
   - defaults
+  - r
 dependencies:
   - star==2.7.8a
   - subread==2.0.1
-  - salmon==1.5.2
+  - salmon==1.10.1
+  - bowtie2
+  - python=3.8
+  - ca-certificates
+  - openssl
+  - samtools
+prefix: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/conda_envs/star_salmon
