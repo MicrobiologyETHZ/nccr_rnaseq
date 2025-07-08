@@ -3,11 +3,11 @@
 ### Installing the pipeline
 
 1. Clone the git repo.
-2. Create and activate the conda environment (highly recommend using `mamba`)
+2. Create and activate the conda environment (highly recommend using `micromamba or mamba`)
 
 ```shell
-mamba env create -f rnaseq_environment.yaml
-conda activate rnaseq
+micromamba env create -f rnaseq_environment.yaml # creates environment named "pipeline"
+micromamba activate pipeline
 ```
 3. Install the pipeline
 
