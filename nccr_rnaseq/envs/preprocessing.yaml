@@ -13,4 +13,3 @@ dependencies:
   - certifi
   - openssl
   - fastq-screen
-prefix: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/conda_envs/preprocessing
