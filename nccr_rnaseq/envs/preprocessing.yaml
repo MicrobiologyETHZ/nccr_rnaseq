@@ -1,10 +1,15 @@
-name:
-  preprocessing
+name: preprocessing
 channels:
-  - defaults
   - conda-forge
   - bioconda
+  - defaults
+  - r
 dependencies:
   - bbmap==38.18
   - multiqc==1.11
   - fastqc==0.11.5
+  - sortmerna
+  - ca-certificates
+  - certifi
+  - openssl
+  - fastq-screen

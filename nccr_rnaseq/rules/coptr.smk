@@ -1,12 +1,16 @@
 
 
 sampleInfo = pd.read_csv(config['samples'])
+for _col in ('fastq_1', 'fastq_2'):
+    if _col in sampleInfo.columns:
+        sampleInfo[_col] = sampleInfo[_col].map(
+            lambda p: _expand(p) if isinstance(p, str) else p)
 
 samples_to_merge = (sampleInfo.loc[sampleInfo.groupby('sample')
                     .unit.filter(lambda x: x.nunique() > 1).index]['sample']
                     .unique())
 
-SAMPLES = pd.read_csv(config['samples'])['sample'].unique()
+SAMPLES = sampleInfo['sample'].unique()
 
 
 def getFastq1(wildcards):
