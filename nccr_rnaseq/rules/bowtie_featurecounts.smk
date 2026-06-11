@@ -14,7 +14,7 @@ rule bowtie_index:
         mem = 7700,
         time = 1400
     conda:
-        'star_salmon'
+        'bowtie'
     threads:
         16
     log:
@@ -43,7 +43,7 @@ rule bowtie_align:
     log:
         log = OUTDIR/'logs/{sample}.bowtie.log'
     conda:
-        'star_salmon'
+        'bowtie'
     threads:
         16
     shell:
@@ -68,7 +68,7 @@ rule bowtie_featurecounts:
         mem = 8000,
         time = 1400
     conda:
-        'star_salmon'
+        'bowtie'
     log: OUTDIR/'logs/{sample}.bowtie_featurecounts.log'
     threads:
         32

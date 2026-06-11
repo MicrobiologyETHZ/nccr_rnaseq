@@ -5,9 +5,17 @@ DATADIR = Path(config["dataDir"])
 OUTDIR = Path(config['outDir'])
 import sys
 
+# rRNA database is only needed by the sortmerna (rnafilter) path; keep it optional
+# so other workflows don't have to specify it.
+RNADB = config.get('rnadb', '')
+
 # Assume have a sample sheet:
 # Sample Name, Unit, forward reads, reverse reads
 sampleInfo = pd.read_csv(config['samples'])
+for _col in ('fastq_1', 'fastq_2'):
+    if _col in sampleInfo.columns:
+        sampleInfo[_col] = sampleInfo[_col].map(
+            lambda p: _expand(p) if isinstance(p, str) else p)
 
 samples_to_merge = (sampleInfo.loc[sampleInfo.groupby('sample')
                     .unit.filter(lambda x: x.nunique() > 1).index]['sample']
@@ -15,7 +23,7 @@ samples_to_merge = (sampleInfo.loc[sampleInfo.groupby('sample')
 
 
 
-if config['merge_replicates'] and len(samples_to_merge) > 0:
+if config.get('merge_replicates') and len(samples_to_merge) > 0:
 
     df1 = sampleInfo[~sampleInfo['sample'].isin(samples_to_merge)][['sample', 'fastq_1', 'fastq_2']]
     df2 = pd.DataFrame([[s, DATADIR/f"concat/{s}/{s}_concat.1.fq.gz", DATADIR/f"concat/{s}/{s}_concat.2.fq.gz"]
@@ -96,7 +104,6 @@ if config['qc']:
                 fq2 = getFastq2,
                 adapters = Path(config['adapters']),
                 phix = Path(config['phix']),
-                fastqc_screen = OUTDIR/'qc/{sample}.fastqc_screen.done'
             output:
                 fq1_clean = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
                 fq2_clean = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',
@@ -225,11 +232,11 @@ else:
 
 rule sortmernaindex:
     input:
-        rnadb = config['rnadb']
+        rnadb = RNADB
     output:
-        marker=touch(f'{config["rnadb"]}.rnadb.index.done')
+        marker=touch(f'{RNADB}.rnadb.index.done')
     params:
-        output_dir = Path(config["rnadb"]).parent/'sortmerna',
+        output_dir = Path(RNADB).parent/'sortmerna',
         qoutfile = OUTDIR / f'logs/rnadb.index.qout',
         qerrfile=OUTDIR / f'logs/rnadb.index.qerr',
         scratch=500,
@@ -246,8 +253,8 @@ rule sortmernaindex:
 
 
 rule sortmerna:
-    input: index_marker = f'{config["rnadb"]}.rnadb.index.done',
-        rnadb= config['rnadb'],
+    input: index_marker = f'{RNADB}.rnadb.index.done',
+        rnadb= RNADB,
         fq1 = OUTDIR /'clean_reads/{sample}/{sample}.1.fq.gz',
         fq2 = OUTDIR /'clean_reads/{sample}/{sample}.2.fq.gz',
     output:
@@ -255,7 +262,7 @@ rule sortmerna:
         fwd = OUTDIR/'rnasorted/{sample}/{sample}.norna_fwd.fq.gz',
         rev = OUTDIR/'rnasorted/{sample}/{sample}.norna_rev.fq.gz',
     params:
-        index_dir=Path(config["rnadb"]).parent/ 'sortmerna/idx',
+        index_dir=Path(RNADB).parent/ 'sortmerna/idx',
         output_dir = lambda wildcards: OUTDIR/f'rnasorted/{wildcards.sample}',
         other_prefix = lambda wildcards: OUTDIR/f'rnasorted/{wildcards.sample}/{wildcards.sample}.norna',
         qoutfile=lambda wildcards: OUTDIR / f'logs/{wildcards.sample}.sortmerna.qout',

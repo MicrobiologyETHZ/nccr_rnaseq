@@ -19,7 +19,7 @@ rule eggnog_mapper:
     log:
         OUTDIR / "logs/{sample}.eggnog.log"
     threads: 16
-    conda: funanot
+    conda: "funanot"
     shell:
         """
         mkdir -p {params.output_dir} {params.temp_dir}
@@ -56,7 +56,7 @@ rule dbcan_annotation:
     log:
         OUTDIR / "logs/{sample}.dbcan.log"
     threads: 16
-    conda: funanot
+    conda: "funanot"
     shell:
         """
         mkdir -p {params.output_dir}
@@ -97,7 +97,7 @@ rule cayman_annotation:
     log:
         OUTDIR / "logs/{sample}.cayman.log"
     threads: 16
-    conda: funanot
+    conda: "funanot"
     shell:
         """
         mkdir -p {params.output_dir}

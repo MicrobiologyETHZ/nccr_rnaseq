@@ -1,0 +1,31 @@
+projectName: MEER25-1_FunctionalAnnotation
+dataDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/other/MEER25-1/scratch/refs/funanot
+outDir: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/other/MEER25-1/scratch/refs/funanot
+samples: /nfs/cds-peta/exports/biol_micro_cds_gr_sunagawa/scratch/Projects_NCCR/other/MEER25-1/scratch/refs/funanot/samples.csv
+
+# Basic settings (not used for functional annotation but required by pipeline)
+sanitise_name: false
+name_delimiter: _
+name_index: 1
+fq_fwd: _1.fq.gz
+fq_rvr: _2.fq.gz
+se: false
+
+# Preprocessing (not used for functional annotation)
+qc: no
+fastqc: no
+merge_replicates: false
+
+# sortmeRNA (required by preprocessing rules)
+rnadb: /nfs/cds/Databases/SILVA/SILVA138/SILVA_138.1_SSURef_NR99_tax_silva.fasta
+
+# Functional annotation databases
+eggnog_data_dir: '/science/ansintsova/eggnog-data/'
+dbcan_db_dir: '/science/ansintsova/dbCAN/db'
+cayman_db_dir: '/nfs/cds-1/IMB-databases/CAYMAN/v3'
+
+# Standard parameters (required by pipeline)
+adapters: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/adapters.fa'
+phix: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/phix174_ill.ref.fa.gz'
+bbmap_human_ref: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/human_bbmap_ref/'
+bbmap_mouse_ref: '/nfs/cds-shini.ethz.ch/exports/biol_micro_cds_gr_sunagawa/SequenceStorage/resources/mouse_bbmap_ref/'

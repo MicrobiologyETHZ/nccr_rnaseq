@@ -12,8 +12,6 @@ def getFastq2(wildcards):
     return sampleInfo[sampleInfo['sample'] == wildcards.sample].fastq_2.values
 
 
-print(sampleInfo[sampleInfo['sample']== 'STAU21-2_21MS06-EcoHS-Glu-7-0-ae-37-1_ISOG_subsample'].fastq_2.values)
-
 DATADIR = Path(config["dataDir"])
 OUTDIR = Path(config['outDir'])
 

@@ -72,7 +72,7 @@ def star(config, local, dry, jobs, partition):
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
     cmd = snakemake_cmd(config, 'star', smk_file, dry,
-                        local, jobs, partition=partition)
+                        local, jobs, partition=partition, workflow='star')
     click.echo(" ".join(cmd))
 
 
@@ -87,7 +87,7 @@ def count_te(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'count_te', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'count_te', smk_file, dry, local, jobs, workflow='count_te')
     click.echo(" ".join(cmd))
 
 
@@ -102,7 +102,7 @@ def salmon(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'salmon', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'salmon', smk_file, dry, local, jobs, workflow='salmon')
     click.echo(" ".join(cmd))
 
 
@@ -117,7 +117,7 @@ def sushi(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'sushi_align', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'sushi_align', smk_file, dry, local, jobs, workflow='sushi')
     click.echo(" ".join(cmd))
 
 
@@ -126,13 +126,13 @@ def sushi(config, local, dry, jobs):
 @click.option('--local', is_flag=True, help="Run on local machine")
 @click.option('--dry', is_flag=True, help="Show commands without running them")
 @click.option('--jobs', '-j', default=1, help="Number of jobs to submit at the same time")
-def bowtie(config, local, dry, jobs):
-    click.echo("Running Running METAT RNASeq Pipeline: Bowtie and featureCounts")
+def metat_bowtie(config, local, dry, jobs):
+    click.echo("Running METAT RNASeq Pipeline: Bowtie and featureCounts")
     click.echo(f"Config file: {config}")
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'bowtie', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'bowtie', smk_file, dry, local, jobs, workflow='bowtie')
     click.echo(" ".join(cmd))
 
 
@@ -147,7 +147,7 @@ def metasalmon(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'salmon_metat', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'salmon_metat', smk_file, dry, local, jobs, workflow='metasalmon')
     click.echo(" ".join(cmd))
 
 
@@ -162,7 +162,7 @@ def rnafilter(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'rna_filter', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'rna_filter', smk_file, dry, local, jobs, workflow='rnafilter')
     click.echo(" ".join(cmd))
 
 
@@ -177,7 +177,7 @@ def prok(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'htseq_count', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'htseq_count', smk_file, dry, local, jobs, workflow='prok')
     click.echo(" ".join(cmd))
 
 
@@ -192,7 +192,7 @@ def motus(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'profile', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'profile', smk_file, dry, local, jobs, workflow='motus')
     click.echo(" ".join(cmd))
 
 
@@ -207,7 +207,7 @@ def mvirs(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'run_mvirs', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'run_mvirs', smk_file, dry, local, jobs, workflow='mvirs')
     click.echo(" ".join(cmd))
 
 
@@ -231,7 +231,7 @@ def count_reps(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'satdna', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'satdna', smk_file, dry, local, jobs, workflow='count_reps')
     click.echo(" ".join(cmd))
 
 
@@ -246,7 +246,7 @@ def coptr(config, local, dry, jobs):
     click.echo("Running {}".format(
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
-    cmd = snakemake_cmd(config, 'run_coptr', smk_file, dry, local, jobs)
+    cmd = snakemake_cmd(config, 'run_coptr', smk_file, dry, local, jobs, workflow='coptr')
     click.echo(" ".join(cmd))
 
 
@@ -263,18 +263,24 @@ def annotate(config, local, dry, jobs, partition):
         'locally' if local else ('dry' if dry else 'on cluster')))
     smk_file = "Snakefile"
     cmd = snakemake_cmd(config, 'functional_annotation', smk_file, dry,
-                        local, jobs, partition=partition)
+                        local, jobs, partition=partition, workflow='annotate')
     click.echo(" ".join(cmd))
 
 
 def snakemake_cmd(config, analysis, smk_file, dry,
-                  local, jobs, no_conda=False, partition='institute'):
+                  local, jobs, no_conda=False, partition='institute', workflow=None):
+    # Resolve the config path against the caller's working directory before the
+    # subprocess switches to the package directory, so a relative -c path works.
+    config = os.path.abspath(config)
+    # The workflow name is passed to Snakemake as a config override so the
+    # Snakefile can include only the rule files relevant to this workflow.
+    wf = f'--config workflow={workflow} ' if workflow else ''
     if dry:
         cmd = shlex.split(
-            f'snakemake -s {smk_file} --configfile {config} -np {analysis} ')
+            f'snakemake -s {smk_file} --configfile {config} {wf}-np {analysis} ')
     elif local:
         cmd = shlex.split(
-            f'snakemake -s {smk_file} --configfile {config} --use-conda -j {jobs} {analysis} ')
+            f'snakemake -s {smk_file} --configfile {config} {wf}--use-conda -j {jobs} {analysis} ')
     else:
         # rstring = r'"DIR=$(dirname {params.qoutfile}); mkdir -p \"${{DIR}}\"; qsub -S /bin/bash -V -cwd -o {params.qoutfile} -e {params.qerrfile} -pe smp {threads} -l h_vmem={params.mem}M"'
         # Slurm
@@ -282,10 +288,10 @@ def snakemake_cmd(config, analysis, smk_file, dry,
 
         if no_conda:
             part1 = shlex.split(
-                f'snakemake --configfile {config} -s {smk_file} -k --cluster ')
+                f'snakemake --configfile {config} {wf}-s {smk_file} -k --cluster ')
         else:
             part1 = shlex.split(
-                f'snakemake --configfile {config} -s {smk_file} --use-conda -k --cluster ')
+                f'snakemake --configfile {config} {wf}-s {smk_file} --use-conda -k --cluster ')
         part2 = shlex.split(rstring)
         part3 = shlex.split(
             f' -p -j {jobs} --max-jobs-per-second 1 {analysis} ')

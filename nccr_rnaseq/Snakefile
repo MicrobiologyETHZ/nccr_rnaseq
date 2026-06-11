@@ -1,198 +1,219 @@
 from scripts.get_vars import *
 import sys
+import os
 import pandas as pd
-
+from pathlib import Path
 
 print("loading configs.")
+
+# ---------------------------------------------------------------------------
+# Make configs portable: expand ${ENV_VARS} and ~ in all string config values
+# (and in the sample-sheet FASTQ paths below). NCCR_REPO defaults to the
+# repository root, so the bundled example configs and test data run from a fresh
+# clone without editing absolute paths. Override NCCR_REPO to point elsewhere.
+# ---------------------------------------------------------------------------
+os.environ.setdefault('NCCR_REPO', str(Path(workflow.basedir).parent))
+
+
+def _expand(p):
+    return os.path.expanduser(os.path.expandvars(str(p)))
+
+
+for _key, _val in list(config.items()):
+    if isinstance(_val, str):
+        config[_key] = _expand(_val)
+
 DATADIR = Path(config['dataDir'])
 OUTDIR = Path(config['outDir'])
-
 print(OUTDIR)
-# Sample Name, Unit, forward reads, reverse reads
+
+# Which workflow are we running? Injected by the CLI as `--config workflow=<name>`.
+# This gates which rule files get included so a run only requires the config keys
+# relevant to that workflow.
+WORKFLOW = config.get('workflow')
+
+# ---------------------------------------------------------------------------
+# Shared sample-sheet setup (used by every workflow)
+# Sample sheet columns: sample, unit, fastq_1, fastq_2
+# ---------------------------------------------------------------------------
 sampleInfo = pd.read_csv(config['samples'])
+for _col in ('fastq_1', 'fastq_2'):
+    if _col in sampleInfo.columns:
+        sampleInfo[_col] = sampleInfo[_col].map(
+            lambda p: _expand(p) if isinstance(p, str) else p)
+SAMPLES = sampleInfo['sample'].unique()
 
 samples_to_merge = (sampleInfo.loc[sampleInfo.groupby('sample')
                     .unit.filter(lambda x: x.nunique() > 1).index]['sample']
                     .unique())
 
-SAMPLES = pd.read_csv(config['samples'])['sample'].unique()
-
-include: "rules/preprocessing.smk"
-include: "rules/star_salmon.smk"
-include: "rules/bwa_htseqcount.smk"
-include: "rules/bowtie_featurecounts.smk"
-include: "rules/salmon_metat.smk"
-include: "rules/coptr.smk"
-include: "rules/mvirs.smk"
-include: "rules/functional_annotation.smk"
+if config.get('merge_replicates') and len(samples_to_merge) > 0:
+    _df1 = sampleInfo[~sampleInfo['sample'].isin(samples_to_merge)][['sample', 'fastq_1', 'fastq_2']]
+    _df2 = pd.DataFrame([[s, DATADIR/f"concat/{s}/{s}_concat.1.fq.gz", DATADIR/f"concat/{s}/{s}_concat.2.fq.gz"]
+                         for s in samples_to_merge], columns=['sample', 'fastq_1', 'fastq_2'])
+    sampleInfo_merged = pd.concat([_df1, _df2])
+    sampleInfo_merged['unit'] = ""
+else:
+    sampleInfo_merged = sampleInfo.copy()
 
 
-mvir_files = [
-    OUTDIR / f'mvirs_out/{sample}.mvirs_oprs.done' for sample in SAMPLES]
+def getFastq1(wildcards):
+    return sampleInfo_merged[sampleInfo_merged['sample'] == wildcards.sample].fastq_1
 
 
-rule run_mvirs:
-    input: mvir_files
+def getFastq2(wildcards):
+    return sampleInfo_merged[sampleInfo_merged['sample'] == wildcards.sample].fastq_2
 
 
-if 'teAnn' in config.keys():
+# ---------------------------------------------------------------------------
+# Conditional includes: only the rule files needed by the selected workflow.
+# ---------------------------------------------------------------------------
+PREPROCESS_WORKFLOWS = {
+    'star', 'salmon', 'count_te', 'prok', 'sushi', 'bowtie', 'metasalmon', 'rnafilter'}
+
+if WORKFLOW in PREPROCESS_WORKFLOWS:
+    include: "rules/preprocessing.smk"
+
+if WORKFLOW in {'star', 'salmon', 'count_te'}:
+    include: "rules/star_salmon.smk"
+
+if WORKFLOW == 'count_te':
     include: "rules/te_counts.smk"
-    count_te_input_files = [
-        f'{OUTDIR}/tetranscripts/{sample}/{sample}.te.done' for sample in SAMPLES]
+
+if WORKFLOW in {'prok', 'sushi'}:
+    include: "rules/bwa_htseqcount.smk"
+
+if WORKFLOW == 'bowtie':
+    include: "rules/bowtie_featurecounts.smk"
+
+if WORKFLOW == 'metasalmon':
+    include: "rules/salmon_metat.smk"
+
+if WORKFLOW == 'mvirs':
+    include: "rules/mvirs.smk"
+
+if WORKFLOW == 'coptr':
+    # coptr aligns with `coptr map`, which needs the bowtie2 index built by
+    # the bowtie_index rule.
+    include: "rules/bowtie_featurecounts.smk"
+    include: "rules/coptr.smk"
+
+if WORKFLOW == 'annotate':
+    include: "rules/functional_annotation.smk"
+
+
+# ---------------------------------------------------------------------------
+# Preprocessing target (FastQC/MultiQC aggregation). Opt-in via config['fastqc'].
+# ---------------------------------------------------------------------------
+if WORKFLOW in PREPROCESS_WORKFLOWS:
+    fastqc = config.get('fastqc', False)
+    if not fastqc:
+        rule preprocess:
+            input: [OUTDIR/f'clean_reads/{sample}/{sample}.qc.done' for sample in SAMPLES]
+    elif fastqc == 'after':
+        rule preprocess:
+            input: OUTDIR/'fastqc/after.multiqc.done'
+    elif fastqc == 'before':
+        rule preprocess:
+            input: OUTDIR/'fastqc/before.multiqc.done'
+    elif fastqc == 'both':
+        rule preprocess:
+            input: OUTDIR/'fastqc/both.multiqc.done'
+    else:
+        print(f'{fastqc} is not a recognized option for fastqc')
+        sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# Workflow targets
+# ---------------------------------------------------------------------------
+
+# EUKARYOTIC: STAR + featureCounts
+if WORKFLOW == 'star':
+    if config.get('multimap') == True:
+        _merge_inputs = [OUTDIR/f'counts/{sample}/{sample}.count.mm.txt' for sample in SAMPLES]
+    else:
+        _merge_inputs = [OUTDIR/f'counts/{sample}/{sample}.count.txt' for sample in SAMPLES]
+
+    rule star:
+        input: OUTDIR/f'counts/{config["projectName"]}.merged.featureCounts.csv'
+
+    rule mergeFeatureCounts:
+        input: _merge_inputs
+        output: OUTDIR/f'counts/{config["projectName"]}.merged.featureCounts.csv'
+        params:
+            qerrfile = OUTDIR/f'logs/merge.featurecounts.qerr',
+            qoutfile = OUTDIR/f'logs/merge.featurecounts.qout',
+            outdir = OUTDIR/'counts',
+            threads = 32,
+            scratch = 6000,
+            mem = 8000,
+            time = 1400
+        log: OUTDIR/'logs/featurecounts.merge.log'
+        threads: 4
+        run:
+            pd_list = []
+            for f in input:
+                df = pd.read_table(f, skiprows=[0], index_col=0).iloc[:, [4, 5]]
+                df.columns = ["Length", Path(f).stem.split(".")[0]]
+                pd_list.append(df)
+            fdf = pd.concat(pd_list, axis=1)
+            fdf = fdf.loc[:, ~fdf.columns.duplicated()]
+            fdf.to_csv(output[0])
+
+# EUKARYOTIC: Salmon
+if WORKFLOW == 'salmon':
+    rule salmon:
+        input: [OUTDIR/f'salmon/{sample}_quant/quant.sf' for sample in SAMPLES]
+
+# EUKARYOTIC: TEtranscripts
+if WORKFLOW == 'count_te':
     rule count_te:
-        input: count_te_input_files
+        input: [OUTDIR/f'tetranscripts/{sample}/{sample}.te.done' for sample in SAMPLES]
 
+# PROKARYOTIC: BWA + HTSeq
+if WORKFLOW == 'prok':
+    rule htseq_count:
+        input: [OUTDIR/f'htseqcount/{sample}/{sample}.htseqcount.txt' for sample in SAMPLES]
 
-"""
-Preprocessing:
+# METAT: Sushicounter
+if WORKFLOW == 'sushi':
+    rule sushi_align:
+        input: [OUTDIR/f'sushibam/{sample}/{sample}.shushicounts' for sample in SAMPLES]
 
-In the config file, can specify whether to run FastQC before preprocessing, after, both or not at all.
-By default, will only run after preprocessing.
+# PROKARYOTIC / METAT: Bowtie2 + featureCounts
+if WORKFLOW == 'bowtie':
+    rule bowtie:
+        input: [OUTDIR/f'bowtie_featurecounts/{sample}/{sample}.count.txt' for sample in SAMPLES]
 
-Preprocessing:
-    - 
+# METAT: Salmon
+if WORKFLOW == 'metasalmon':
+    rule salmon_metat:
+        input: [OUTDIR/f"salmon_metat/{sample}_quant/quant.sf" for sample in SAMPLES]
 
-"""
-if not config['fastqc']:
-    preprocess_files = [
-        OUTDIR/f'clean_reads/{sample}/{sample}.qc.done' for sample in SAMPLES]
-    rule preprocess:
-        input: preprocess_files
-elif config['fastqc'] == 'after':
-    rule preprocess:
-        input: OUTDIR/'fastqc/after.multiqc.done'
-elif config['fastqc'] == 'before':
-    rule preprocess:
-        input: OUTDIR/'fastqc/before.multiqc.done'
-elif config['fastqc'] == 'both':
-    rule preprocess:
-        input: OUTDIR/'fastqc/both.multiqc.done'
-else:
-    print(f'{config["fastqc"]} is not a recognized option for fastqc')
-    sys.exit(1)
+# METAT: rRNA filtering with sortmerna
+if WORKFLOW == 'rnafilter':
+    rule rna_filter:
+        input: [OUTDIR/f'rnasorted/{sample}.sortmerna.done' for sample in SAMPLES]
 
-# EUKARYOTIC RULES
+# mVIRs
+if WORKFLOW == 'mvirs':
+    rule run_mvirs:
+        input: [OUTDIR/f'mvirs_out/{sample}.mvirs_oprs.done' for sample in SAMPLES]
 
-rule salmon:
-    input: [OUTDIR / f'salmon/{sample}_quant/quant.sf' for sample in SAMPLES]
+# CoPTR
+if WORKFLOW == 'coptr':
+    rule run_coptr:
+        input: OUTDIR/'coptr.done'
 
-rule star:
-    input: OUTDIR/f'counts/{config["projectName"]}.merged.featureCounts.csv'
+# Functional annotation: eggNOG + dbCAN + cayman
+if WORKFLOW == 'annotate':
+    eggnog_files = [OUTDIR/f'eggnog/{sample}/{sample}.eggnog.done' for sample in SAMPLES]
+    dbcan_files = [OUTDIR/f'dbcan/output_{sample}/{sample}.dbcan.done' for sample in SAMPLES]
+    cayman_files = [OUTDIR/f'cayman/{sample}/{sample}.cayman.done' for sample in SAMPLES]
 
-if 'multimap' in config.keys() and config['multimap'] == True:
-    mergeFeatureCounts_files = [
-        OUTDIR/f'counts/{sample}/{sample}.count.mm.txt' for sample in SAMPLES]
-    rule mergeFeatureCounts:
-        input: mergeFeatureCounts_files
-        output: OUTDIR / \
-            f'counts/{config["projectName"]}.merged.featureCounts.csv'
-        params:
-            qerrfile = OUTDIR / f'logs/merge.featurecounts.qerr',
-            qoutfile = OUTDIR / f'logs/merge.featurecounts.qout',
-            outdir = OUTDIR/'counts',
-            threads = 32,
-            scratch = 6000,
-            mem = 8000,
-            time = 1400
-        log: OUTDIR/'logs/featurecounts.merge.log'
-        threads:
-            4
-        run:
-            pd_list = []
-            for f in input:
-                df = pd.read_table(
-                    f, skiprows=[0], index_col=0).iloc[:, [4, 5]]
-                df.columns = ["Length", Path(f).stem.split(".")[0]]
-                pd_list.append(df)
-            fdf = pd.concat(pd_list, axis=1)
-            fdf = fdf.loc[:, ~fdf.columns.duplicated()]
-            fdf.to_csv(output[0])
-
-else:
-    mergeFeatureCounts_files = [
-        OUTDIR/f'counts/{sample}/{sample}.count.txt' for sample in SAMPLES]
-    rule mergeFeatureCounts:
-        input: mergeFeatureCounts_files
-        output: OUTDIR / \
-            f'counts/{config["projectName"]}.merged.featureCounts.csv'
-        params:
-            qerrfile = OUTDIR / f'logs/merge.featurecounts.qerr',
-            qoutfile = OUTDIR / f'logs/merge.featurecounts.qout',
-            outdir = OUTDIR/'counts',
-            threads = 32,
-            scratch = 6000,
-            mem = 8000,
-            time = 1400
-        log: OUTDIR/'logs/featurecounts.merge.log'
-        threads:
-            4
-        run:
-            pd_list = []
-            for f in input:
-                df = pd.read_table(
-                    f, skiprows=[0], index_col=0).iloc[:, [4, 5]]
-                df.columns = ["Length", Path(f).stem.split(".")[0]]
-                pd_list.append(df)
-            fdf = pd.concat(pd_list, axis=1)
-            fdf = fdf.loc[:, ~fdf.columns.duplicated()]
-            fdf.to_csv(output[0])
-
-# METAT RULES
-rna_filter_files = [
-    OUTDIR / f'rnasorted/{sample}.sortmerna.done' for sample in SAMPLES]
-rule rna_filter:
-    input: rna_filter_files
-
-bowtie_files = [
-    OUTDIR/f'bowtie_featurecounts/{sample}/{sample}.count.txt' for sample in SAMPLES]
-rule bowtie:
-    input: bowtie_files
-
-htseq_count_files = [
-    OUTDIR / f'htseqcount/{sample}/{sample}.htseqcount.txt' for sample in SAMPLES]
-rule htseq_count:
-    input: htseq_count_files
-
-sushi_align_files = [
-    OUTDIR/f'sushibam/{sample}/{sample}.shushicounts' for sample in SAMPLES]
-rule sushi_align:
-    input: sushi_align_files
-
-salmon_metat_files = [
-    OUTDIR/f"salmon_metat/{sample}_quant/quant.sf" for sample in SAMPLES]
-rule salmon_metat:
-    input: salmon_metat_files
-
-
-# rule kallisto:
-#     input: [OUTDIR/f'kallisto/{sample}.done' for sample in SAMPLES]
-
-
-# rule profile:
-#     input: [OUTDIR / f'motus/{sample}/{sample}.motus' for sample in SAMPLES]
-
-# # SATDNA rules
-
-# rule satdna:
-#     input: [OUTDIR/f'kseek/{sample}.rep.total' for sample in SAMPLES]
-
-
-rule run_coptr:
-    input: OUTDIR/'coptr.done'
-
-
-# FUNCTIONAL ANNOTATION RULES
-eggnog_files = [
-    OUTDIR / f'eggnog/{sample}/{sample}.eggnog.done' for sample in SAMPLES]
-
-dbcan_files = [
-    OUTDIR / f'dbcan/output_{sample}/{sample}.dbcan.done' for sample in SAMPLES]
-
-cayman_files = [
-    OUTDIR / f'cayman/{sample}/{sample}.cayman.done' for sample in SAMPLES]
-
-rule functional_annotation:
-    input:
-        eggnog_files,
-        dbcan_files,
-        cayman_files
+    rule functional_annotation:
+        input:
+            eggnog_files,
+            dbcan_files,
+            cayman_files

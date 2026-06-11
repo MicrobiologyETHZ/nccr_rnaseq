@@ -1,0 +1,33 @@
+# Minimal config for the `metat-bowtie` workflow (Bowtie2 + featureCounts).
+# Run with:  nccrRna metat-bowtie -c configs/metat-bowtie_config.yaml --dry
+#
+# Paths use ${NCCR_REPO}, which defaults to the repository root, so this file
+# runs against the bundled test data straight from a clone. For your own data,
+# replace the ${NCCR_REPO}/... paths with absolute paths (or set NCCR_REPO).
+
+# ── Inputs ──
+samples:   ${NCCR_REPO}/test_data/samples.csv   # CSV: sample,unit,fastq_1,fastq_2
+dataDir:   ${NCCR_REPO}/test_data               # base dir for reads (replicate merge)
+outDir:    ${NCCR_REPO}/test_out                # all outputs go here
+
+# ── Reference ──
+refGenome: ${NCCR_REPO}/test_data/ref.fasta     # bowtie2 index is built from this
+refAnn:    ${NCCR_REPO}/test_data/ref.gff        # featureCounts annotation (GTF/GFF)
+
+# ── featureCounts ──
+feature_type: CDS         # -t : feature type to count (exon, CDS, gene, …)
+attribute:    gene_id     # -g : grouping attribute
+strand:       0           # -s : 0 unstranded / 1 forward / 2 reverse
+
+# ── Read QC (bbduk) ──
+qc:        true           # false = use reads as-is, skip trimming
+trimq:     14
+minlen:    45
+mink:      11
+mapq:      20
+adapters:  ${NCCR_REPO}/data/adapters/adapters.fa
+phix:      ${NCCR_REPO}/data/adapters/phix174_ill.ref.fa.gz
+
+# ── Misc ──
+se:               false   # single-end reads?
+merge_replicates: false   # merge multiple units per sample before alignment
